@@ -1,0 +1,15 @@
+[NAME]
+Unattr - remove choosen xattr from files, recursively.
+
+[EXAMPLES]
+.TP
+Remove shake xattrs :
+.B unattr
+\--attr=shake.ptime
+.I FILES
+.TP
+Remove beagle xattrs :
+.B unattr
+\-a Beagle.MTime \-a Beagle.AttrTime \-a Beagle.Fingerprint
+\-a Beagle.Uid
+.I FILES

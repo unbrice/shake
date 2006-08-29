@@ -1,0 +1,27 @@
+[NAME]
+Shake - Rewrite fragmented files, maybe improving performance.
+
+[EXAMPLES]
+.TP
+See fragmention of a file :
+.B shake
+\--pretend \--verbose \--verbose
+.I FILE
+.TP
+Shake all file in a dir, recursively :
+.B shake
+\--old=0
+.I DIR
+.TP
+Shake all mp3 in subdirectory, puting together those close in lexical order :
+find -iname '*.mp3' | sort |
+.B shake
+
+[USAGE]
+If there is no
+.I FILES
+shake read from stdin.
+
+Please refer to
+.I http://vleu.net/shake/
+for detailed instructions.

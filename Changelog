@@ -1,0 +1,50 @@
+2006-08-28 : shake 0.26 ; urgency=low
+	* Added ~ppc to the ebuild, as repported by Frederic Grosshans
+	* Added a workaround against reiser4 bug fixed 20060827
+2006-08-22 : shake 0.25 ; urgency=low
+	* Fixed copyright notices, as Savannah asked
+	* Fixed english sentences, thanks to Gabrys
+2006-08-19 : shake 0.24 ; urgency=low
+	* Fixed Makefile for 64 bit plateforms
+	* Changed default values to recurse on the same FS by default
+	* Added the possibility of linking static
+	* Fixed usage of getopt_long
+2006-08-15 : shake 0.23 ; urgency=medium
+	* Fixed file lists allocation
+	* Changed output order
+	* Fixed a typo in the manpage
+	* Added an alpha python wrapper (not installed by default)
+	* Added the possibility to get filelist from stdin
+	* Added unattr, to remove shake.ptime and others xattrs
+	* Fixed the makefile
+2006-06-25 : shake 0.22 ; urgency=medium
+	* Made the locks non blocking (LOCK_NB)
+	* Silented some minor errors
+	* Fixed changelog dates ^.^
+2006-06-13 : shake 0.21 ; urgency=low
+	* Added --no-xattr/-X
+	* Fixed manpage
+2006-06-12 : shake 0.20 ; urgency=low
+	* Added --one-file-system
+	* Trap signals
+	* close fd when get_testimony fail
+	* Fixed a small memory leak in main.c:285 (args were not freed)
+	* Lock more agressively
+2006-06-06 : shake 0.19 ; urgency=high
+	* Restore mtime to avoid conflicts with package managers.
+	* Changed output format.
+	* get_testimony : Always determine file position, needed for shake_dir.
+	* Wrote a real documentation, and improved the manpage.
+	* Reorganised source code
+2006-06-01 : shake 0.18 ; urgency=medium
+	* Use metadatas to store position time.
+	* Splited OS specific functions.
+	* Changed default values and option name.
+	* Added an option to specify the max number of crumbs.
+	* Fixed a bugs with age interpretation
+2006-05-17 : shake 0.17 ; urgency=low
+	* Relaxed cflags to allow compilation on 64 bits systems.
+	* Fixed few problems with options.
+	* Added an ebuild
+2006-05-14 : shake 0.16 ; urgency=low
+	* First public release.
