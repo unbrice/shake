@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <time.h>
 typedef unsigned int uint;
+typedef long long int llint;
 
 /* The distance at wich two adjacent block are considered as two
  *fragment (in byte). ~=(readahead_of_most_disks*2)
@@ -68,14 +69,14 @@ struct accused
   uint blocks;			// Number of blocks
   uint fragc;			// Number of fragments
   uint crumbc;			// Number of fragments smaller than crumbratio
-  uint start;			// The position of the first block
-  uint end;			// The position of the first block
-  uint ideal;			// Where the file would idealy start
+  llint start;			// The position of the first block
+  llint end;			// The position of the first block
+  llint ideal;			// Where the file would idealy start
   time_t atime;			// atime, as returned by stat
   time_t mtime;			// ctime, as returned by stat
   time_t age;			// Min of (atime,ctime,mtime)
-  int *poslog;			// Tab of fragments positions
-  int *sizelog;			// Tab of fragments sizes
+  llint *poslog;		// Tab of fragments positions
+  llint *sizelog;		// Tab of fragments sizes
   dev_t fs;
   bool guilty;
 };

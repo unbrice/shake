@@ -74,8 +74,8 @@ void
 show_reg (struct accused *a, struct law *l)
 {
   /* Show file status */
-  printf ("%i\t%i\t%i\t%i\t%i\t%i\t%i\t%s",
-	  a->ideal, a->start, a->end, a->fragc, a->crumbc,
+  printf ("%lli\t%lli\t%lli\t%i\t%i\t%i\t%i\t%s",
+	  a->ideal, a->start/1024, a->end/1024, a->fragc, a->crumbc,
 	  (int) (a->age / 3600 / 24), a->guilty, a->name);
   /* And, eventualy, list of frags and crumbs */
   if (l->verbosity > 2 && a->poslog && a->poslog[0] != -1)
@@ -83,8 +83,8 @@ show_reg (struct accused *a, struct law *l)
       uint n;
       putchar ('\t');
       for (n = 0; a->sizelog[n + 1] != -1; n++)
-	printf ("%i:%i,", a->poslog[n], a->sizelog[n]);
-      printf ("%i:%i\n", a->poslog[n], a->sizelog[n]);
+	printf ("%lli:%lli,", a->poslog[n]/1024, a->sizelog[n]/1024);
+      printf ("%lli:%lli\n", a->poslog[n]/1024, a->sizelog[n]/1024);
     }
   else
     putchar ('\n');

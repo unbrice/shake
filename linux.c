@@ -71,10 +71,10 @@ get_testimony (struct accused *a, struct law *l)
 {
   const size_t BUFFSTEP = 32;
   /* General stats */
-  int physdelta, physbsize;
-  off_t crumbsize;
+  int physbsize;
+  int crumbsize;
   /* Framents logs */
-  int *sizelog = NULL, *poslog = NULL;	// Logs of framgent's size and position
+  llint *sizelog = NULL, *poslog = NULL; // Framgents sizes and positions
   int logs_pos = 0;		// Position in logs
   /* Convert sizes in number of physical blocks */
   {
@@ -83,9 +83,8 @@ get_testimony (struct accused *a, struct law *l)
 	error (0, errno, "%s: FIGETBSZ() failed", a->name);
 	return -1;
       }
-    physdelta = MAGICLEAP / physbsize;
     a->blocks = (a->size + physbsize - 1) / physbsize;
-    crumbsize = a->size * l->crumbratio / physbsize;
+    crumbsize = a->size * l->crumbratio;
   }
   /* Create the log of fragment, terminated by <-1,-1> */
   if (l->verbosity >= 3)
@@ -104,7 +103,7 @@ get_testimony (struct accused *a, struct law *l)
    * FIBMAP (or ask me but I don't know anything which is not in this file).
    */
   {
-    int physpos = 0, prevphyspos = 0;
+    llint physpos = 0, prevphyspos = 0;
     uint fragsize = 0;
     for (int i = 0; i < a->blocks; i++)
       {
@@ -118,6 +117,7 @@ get_testimony (struct accused *a, struct law *l)
 	    error (0, errno, "%s: FIBMAP failed", a->name);
 	    return -1;
 	  }
+	physpos = physpos * physbsize;
 	/* workaround reiser4 bug fixed 2006-08-27, TODO : remove */
 	if (physpos < 0)
 	  {
@@ -131,7 +131,7 @@ get_testimony (struct accused *a, struct law *l)
 	      a->start = physpos;
 	    a->end = physpos;
 	    /* Check if we have a new fragment, */
-	    if (abs (physpos - prevphyspos) > physdelta)
+	    if (llabs (physpos - prevphyspos) > MAGICLEAP)
 	      {
 		/* log it */
 		if (l->verbosity >= 3)
@@ -159,7 +159,7 @@ get_testimony (struct accused *a, struct law *l)
 		fragsize = 0;
 	      }
 	  }
-	fragsize++;
+	fragsize +=  physbsize;
       }
     /* Record the last size, and close the log */
     if (l->verbosity >= 3 && fragsize)
