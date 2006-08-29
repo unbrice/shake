@@ -50,7 +50,7 @@ void
 show_version (void)
 {
   puts ("\
-Shake 0.26\n\
+Shake " VERSION "\n\
 Copyright (C) 2006 Brice Arnould.\n\
 Shake comes with ABSOLUTELY NO WARRANTY. You may redistribute copies of Shake\n\
 under the terms of the GNU General Public License. For more information about\n\

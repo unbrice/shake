@@ -82,7 +82,7 @@ void
 show_version (void)
 {
   puts ("\
-Unattr 0.26\n\
+Unattr "VERSION"\n\
 Copyright (C) 2006 Brice Arnould.\n\
 Unattr comes with ABSOLUTELY NO WARRANTY. You may redistribute copies of Unattr\n\
 under the terms of the GNU General Public License. For more information about\n\
