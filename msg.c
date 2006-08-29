@@ -21,7 +21,7 @@ show_help (void)
 {
   puts ("\
 Usage: shake [OPTION]... [FILE|DIRECTORY]...\n\
-Rewrite fragmented files, maybe improving performance (defragmenter).\n\
+Rewrite fragmented or misplaced files, maybe improving performance.\n\
 Read from standard input if there is no files in argv.\n\
 You have to mount your partition with user_xattr option.\n\
 \n\
