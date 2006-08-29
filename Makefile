@@ -8,7 +8,7 @@ CFLAGS += -std=gnu99 -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64   \
 	-D_XOPEN_SOURCE=600 -O2 -D_POSIX_C_SOURCE=200112L -Wall     \
 	-pedantic-errors  -Wcast-align -Wpointer-arith	    	    \
 	-Wbad-function-cast
-CFLAGS += -O0 -ggdb3 -Wconversion -Werror # -pg
+# CFLAGS += -O0 -ggdb3 -Wconversion -Werror # -pg
 CFLAGS += -DNDEBUG
 
 .PHONY: all clean dist install uninstall
@@ -42,7 +42,7 @@ doc/%.8: % Makefile \
 
 install: all
 	cp shake unattr $(BINDIR)
-	cp shake.8 unattr.8 $(MANDIR)
+	cp doc/shake.8 doc/unattr.8 $(MANDIR)
 
 uninstall:
 	rm $(BINDIR)/{shake,unattr} -f

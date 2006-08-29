@@ -1,5 +1,6 @@
 2006-08-29 : shake 0.27 ; urgency=low
 	* Changed size unit (now in kilobytes)
+	* Fixed doc installation
 2006-08-28 : shake 0.26 ; urgency=low
 	* Added ~ppc to the ebuild, as repported by Frederic Grosshans
 	* Added a workaround against reiser4 bug fixed 20060827
