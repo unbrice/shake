@@ -1,3 +1,4 @@
+VERSION=0.27
 CC	= gcc
 LFLAGS	= -lattr
 
@@ -7,7 +8,7 @@ MANDIR	= $(DESTDIR)/usr/share/man/man8
 CFLAGS += -std=gnu99 -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64   \
 	-D_XOPEN_SOURCE=600 -O2 -D_POSIX_C_SOURCE=200112L -Wall     \
 	-pedantic-errors  -Wcast-align -Wpointer-arith	    	    \
-	-Wbad-function-cast -DVERSION=\"0.27\"
+	-Wbad-function-cast -DVERSION=\"${VERSION}\"
 # CFLAGS += -O0 -ggdb3 -Wconversion -Werror # -pg
 CFLAGS += -DNDEBUG
 
@@ -22,6 +23,7 @@ dist:
 doc: doc/shake.8 doc/unattr.8
 clean:  dist
 	rm -f unattr shake shake-static
+	find -name '*.~' -exec rm {} \;
 
 shake: executive.o judge.o linux.o main.o msg.o
 	$(CC) $(CFLAGS) $(LFLAGS) $? -o $@
@@ -47,3 +49,7 @@ install: all
 uninstall:
 	rm $(BINDIR)/{shake,unattr} -f
 	rm $(MANDIR)/{shake,unattr}.8 -f
+
+tarball: doc clean
+	tar -C.. -cj shake -f ../shake-${VERSION}.tar.bz2 \
+	--exclude CVS --exclude semantic.cache 
