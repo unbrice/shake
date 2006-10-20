@@ -1,3 +1,5 @@
+2006-10-20 : shake 0.28 ; urgency=low
+	* Fixed --no-locks parsing
 2006-08-29 : shake 0.27 ; urgency=low
 	* Changed size unit (now in kilobytes)
 	* Fixed doc installation, as reported by Adam Sampson

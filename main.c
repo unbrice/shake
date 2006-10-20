@@ -139,7 +139,7 @@ parseopts (int argc, char **restrict argv, struct law *restrict l)
 	{"max-fragc", required_argument, NULL, 'C'},
 	{"max-deviance", required_argument, NULL, 'd'},
 	{"help", no_argument, NULL, 'h'},
-	{"no-locks", required_argument, NULL, 'L'},
+	{"no-locks", no_argument, NULL, 'L'},
 	{"many-fs", no_argument, NULL, 'm'},
 	{"new", required_argument, NULL, 'n'},
 	{"old", required_argument, NULL, 'o'},
