@@ -120,7 +120,7 @@ investigate (char *name, struct law *l)
     {
       time_t ptime = get_ptime (a->fd);
       if (ptime != (time_t) - 1)
-	a->age = time (NULL) - get_ptime (a->fd);
+	a->age = time (NULL) - ptime;
     }
   if (-1 == get_testimony (a, l))
     goto freeall;
