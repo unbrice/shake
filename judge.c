@@ -43,7 +43,7 @@ investigate (char *name, struct law *l)
 {
   assert (name);
   struct accused *a;
-  ino_t inode;			// used to check consistency between open and stat
+  ino_t inode;		   // used to check against race between open and stat
   /* malloc() */
   {
     a = malloc (sizeof (*a));
@@ -136,7 +136,6 @@ freeall:
   return NULL;
 }
 
-
 /*  This function free structs allocated by
  * investigate().
  */
@@ -205,9 +204,13 @@ judge_reg (struct accused *a, struct law *l)
 }
 
 static int
-judge_list (char **flist, struct law *l)
+judge_list (char *restrict *flist, struct law *restrict l)
 {
   assert (flist && l);
+  int res = 0; // value returned
+  /*  We want "y", to be the file examined, "x" the previous one, and
+   * eventually "z" the next one (to take neighboors in account).
+   */
   struct accused *x = NULL, *y = NULL, *z = NULL;
   /* check if list is empty */
   if (!flist[0])
@@ -254,16 +257,16 @@ judge_list (char **flist, struct law *l)
 	  }
       }
       /* judge */
-      {
-	int jugement = judge (y, l);
-	if (-1 == jugement)
-	  return -1;
-      }
+      if (-1 == judge (y, l))
+	{
+	  res= -1;
+	  break;
+	}
     }
   close_case (x, l);
   close_case (y, l);
   close_case (z, l);
-  return 0;
+  return res;
 }
 
 static int
@@ -271,23 +274,22 @@ judge_dir (struct accused *a, struct law *l)
 {
   assert (a && a->name && l);
   assert ((dev_t) - 1 != a->fs);
-  if ((dev_t) - 1 != l->kingdom	// --one-file-system
+  /* check against --one-file-system */
+  if ((dev_t) - 1 != l->kingdom
       && a->fs != l->kingdom)
     return 0;
-  /*  We want "y", to be the file examined, "x" the previous one, and
-   * eventually "z" the next one (to take neighboors in account).
-   */
-  char **flist = list_dir (a->name, true);
-  if (!flist)
+  else
     {
-      error (0, 0, "%s: list_dir() failed", a->name);
-      return -1;
-    }
-  /* finally, judge */
-  {
-    int res = judge_list (flist, l);
-    close_list (flist);
-    return res;
+      int res;
+      char **flist = list_dir (a->name, true);
+      if (!flist)
+	{
+	  error (0, 0, "%s: list_dir() failed", a->name);
+	  return -1;
+	}
+      res = judge_list (flist, l);
+      close_list (flist);
+      return res;
   }
 }
 
@@ -295,21 +297,16 @@ int
 judge_stdin (struct accused *a, struct law *l)
 {
   assert (!a && l);
-  /*  We want "y", to be the file examined, "x" the previous one, and
-   * eventually "z" the next one (to take neighboors in account).
-   */
+  int res;
   char **flist = list_stdin ();
   if (!flist)
     {
       error (0, 0, "-: list_stdin() failed");
       return -1;
     }
-  /* finally, judge */
-  {
-    int res = judge_list (flist, l);
-    close_list (flist);
-    return res;
-  }
+  res = judge_list (flist, l);
+  close_list (flist);
+  return res;
 }
 
 
@@ -319,18 +316,18 @@ judge (struct accused *a, struct law *l)
   assert (a && l);
   if (S_ISLNK (a->mode))
     return 0;
-  if (S_ISDIR (a->mode))
+  else if (S_ISDIR (a->mode))
     return judge_dir (a, l);
-  if (S_ISREG (a->mode) && a->size)
+  else if (S_ISREG (a->mode) && a->size)
     {
       a->guilty = judge_reg (a, l);
-      if (a->guilty == true)
+      if (a->guilty)
 	shake_reg (a, l);
+      /*  Show result of investigation, if the file is guilty or if
+       * level of verbosity is greater than 2
+       */
+      if ((a->guilty && l->verbosity) || l->verbosity >= 2)
+	show_reg (a, l);
     }
-  /*  Show result of investigation, if the file is guilty or if
-   * level of verbosity is greater than 2
-   */
-  if ((a->guilty && l->verbosity) || l->verbosity >= 2)
-    show_reg (a, l);
   return a->guilty;
 }
