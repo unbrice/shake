@@ -4,6 +4,8 @@ LFLAGS	= -lattr
 
 BINDIR	= $(DESTDIR)/usr/bin
 MANDIR	= $(DESTDIR)/usr/share/man/man8
+PNAME   = shake-$(VERSION)
+
 
 CFLAGS += -std=gnu99 -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64   \
 	-D_XOPEN_SOURCE=600 -O2 -D_POSIX_C_SOURCE=200112L -Wall     \
@@ -51,5 +53,10 @@ uninstall:
 	rm $(MANDIR)/{shake,unattr}.8 -f
 
 tarball: doc clean
-	tar -C.. -cj shake -f ../shake-${VERSION}.tar.bz2 \
-	--exclude CVS --exclude semantic.cache 
+	LIST=$(echo *)
+	mkdir -p $(PNAME)
+	cp -R $(LIST) $(PNAME)
+	mv ${PNAME}/distrib/shake-VERSION.ebuild \
+		$(PNAME)/distrib/$(PNAME).ebuild
+	tar -cj $(PNAME) -f ../$(PNAME).tar.bz2 --exclude CVS
+	rm -Rf $(PNAME)
