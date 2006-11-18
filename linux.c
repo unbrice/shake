@@ -39,8 +39,7 @@ set_ptime (int fd)
 {
   assert (fd > -1);
   uint32_t date = htonl ((uint32_t) time (NULL));
-  int size = DATE_SIZE;
-  return attr_setf (fd, "shake.ptime", (char *) &date, size, ATTR_DONTFOLLOW);
+  return attr_setf (fd, "shake.ptime", (char *) &date, DATE_SIZE, ATTR_DONTFOLLOW);
 }
 
 /* Get the ptime of the file, -1 if that failed

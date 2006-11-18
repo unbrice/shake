@@ -289,7 +289,7 @@ list_dir (char *name, int sort)
   const size_t BUFFSTEP = 32;
   size_t namel = strlen (name);
   /* Read entries one by one and store their name in a buffer */
-  int n = 0;
+  uint n = 0;
   char **buff = malloc (sizeof (*buff) * BUFFSTEP);
   if (!buff)
     error (1, errno, "%s: malloc() failed", name);
@@ -305,7 +305,7 @@ list_dir (char *name, int sort)
     {
       char *dname = ent->d_name;
       char *fname;		// full name
-      if (n == INT_MAX)
+      if (n == UINT_MAX)
 	{
 	  error (0, 0, "%s: more than %i files", name, INT_MAX - 1);
 	  return NULL;
@@ -340,10 +340,9 @@ list_dir (char *name, int sort)
       fname[namel] = '/';
       strcpy (fname + namel + 1, dname);
       buff[n] = fname;
-      // printf("BUFF [%i]: %s\n", n, buff[n]);
     }
   if (sort)
-    qsort (buff, (uint) n, sizeof (*buff), &atimesort);
+    qsort (buff, n, sizeof (*buff), &atimesort);
   /* A NULL entry will mark the end of the buffer */
   buff[n] = NULL;
   closedir (dir);
@@ -359,7 +358,7 @@ char **
 list_stdin (void)
 {
   const size_t BUFFSTEP = 32;
-  int n = 0;
+  uint n = 0;
   size_t len = 0;
   char *line = NULL;
   char **buff = malloc (BUFFSTEP * sizeof (*buff));
@@ -402,7 +401,7 @@ list_stdin (void)
   /* A NULL entry will mark the end of the buffer */
   buff[n] = NULL;
   if (n)
-    qsort (buff, (uint) n - 1, sizeof (*buff), &atimesort);
+    qsort (buff, n - 1, sizeof (*buff), &atimesort);
   return buff;
 }
 
