@@ -43,7 +43,7 @@ investigate (char *name, struct law *l)
 {
   assert (name);
   struct accused *a;
-  ino_t inode;		   // used to check against race between open and stat
+  ino_t inode;			// used to check against race between open and stat
   /* malloc() */
   {
     a = malloc (sizeof (*a));
@@ -204,10 +204,10 @@ judge_reg (struct accused *a, struct law *l)
 }
 
 static int
-judge_list (char *restrict *flist, struct law *restrict l)
+judge_list (char *restrict * flist, struct law *restrict l)
 {
   assert (flist && l);
-  int res = 0; // value returned
+  int res = 0;			// value returned
   /*  We want "y", to be the file examined, "x" the previous one, and
    * eventually "z" the next one (to take neighboors in account).
    */
@@ -259,7 +259,7 @@ judge_list (char *restrict *flist, struct law *restrict l)
       /* judge */
       if (-1 == judge (y, l))
 	{
-	  res= -1;
+	  res = -1;
 	  break;
 	}
     }
@@ -275,8 +275,7 @@ judge_dir (struct accused *a, struct law *l)
   assert (a && a->name && l);
   assert ((dev_t) - 1 != a->fs);
   /* check against --one-file-system */
-  if ((dev_t) - 1 != l->kingdom
-      && a->fs != l->kingdom)
+  if ((dev_t) - 1 != l->kingdom && a->fs != l->kingdom)
     return 0;
   else
     {
@@ -290,7 +289,7 @@ judge_dir (struct accused *a, struct law *l)
       res = judge_list (flist, l);
       close_list (flist);
       return res;
-  }
+    }
 }
 
 int

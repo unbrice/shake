@@ -83,9 +83,9 @@ fcopy (int in_fd, int out_fd, size_t gap)
   /* Let's go ! */
   {
     int len = 0;
-    uint empty_buffs = 0;// Number of consecutive empty buffers, for sparse files
-    bool is_empty = 0;	 // Tell if the buffer is empty, for sparse files
-    int *empty = NULL;	 // An empty buffer, for sparse files
+    uint empty_buffs = 0;	// Number of consecutive empty buffers, for sparse files
+    bool is_empty = 0;		// Tell if the buffer is empty, for sparse files
+    int *empty = NULL;		// An empty buffer, for sparse files
     if (gap)
       {
 	empty = alloca (buffsize);	// better than goto free()... or not ?

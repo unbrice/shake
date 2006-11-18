@@ -39,7 +39,8 @@ set_ptime (int fd)
 {
   assert (fd > -1);
   uint32_t date = htonl ((uint32_t) time (NULL));
-  return attr_setf (fd, "shake.ptime", (char *) &date, DATE_SIZE, ATTR_DONTFOLLOW);
+  return attr_setf (fd, "shake.ptime", (char *) &date, DATE_SIZE,
+		    ATTR_DONTFOLLOW);
 }
 
 /* Get the ptime of the file, -1 if that failed
@@ -73,7 +74,7 @@ get_testimony (struct accused *a, struct law *l)
   int physbsize;
   int crumbsize;
   /* Framents logs */
-  llint *sizelog = NULL, *poslog = NULL; // Framgents sizes and positions
+  llint *sizelog = NULL, *poslog = NULL;	// Framgents sizes and positions
   int logs_pos = 0;		// Position in logs
   /* Convert sizes in number of physical blocks */
   {
@@ -158,7 +159,7 @@ get_testimony (struct accused *a, struct law *l)
 		fragsize = 0;
 	      }
 	  }
-	fragsize +=  physbsize;
+	fragsize += physbsize;
       }
     /* Record the last size, and close the log */
     if (l->verbosity >= 3 && fragsize)
