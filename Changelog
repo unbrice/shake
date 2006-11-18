@@ -1,7 +1,7 @@
-2006-10-20 : shake 0.28 ; urgency=low
+2006-11-19 : shake 0.28 ; urgency=low
 	* Fixed --no-locks parsing
 	* Fixed unnecessary get_ptime() call
-	* Cleaned code
+	* Cleaned up code
 2006-08-29 : shake 0.27 ; urgency=low
 	* Changed size unit (now in kilobytes)
 	* Fixed doc installation, as reported by Adam Sampson

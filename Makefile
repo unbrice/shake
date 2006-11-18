@@ -1,4 +1,4 @@
-VERSION=0.27
+VERSION = 0.28
 CC	= gcc
 LFLAGS	= -lattr
 
