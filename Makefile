@@ -56,7 +56,7 @@ tarball: doc clean
 	LIST=$(echo *)
 	mkdir -p $(PNAME)
 	cp -R $(LIST) $(PNAME)
-	mv ${PNAME}/distrib/shake-VERSION.ebuild \
+	mv $(PNAME)/distrib/shake-VERSION.ebuild \
 		$(PNAME)/distrib/$(PNAME).ebuild
 	tar -cj $(PNAME) -f ../$(PNAME).tar.bz2 --exclude CVS
 	rm -Rf $(PNAME)
