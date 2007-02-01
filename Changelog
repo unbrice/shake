@@ -1,4 +1,4 @@
-2006-02-01 :  shake 0.29 ; urgency=high
+2007-02-01 :  shake 0.29 ; urgency=high
 	* Added a workaround against ld behaviour, as repported by mrsaccess
 2006-11-19 : shake 0.28 ; urgency=low
 	* Fixed --no-locks parsing
