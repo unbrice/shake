@@ -53,6 +53,7 @@ struct law
   bool locks;			// put a lock on written files
   dev_t kingdom;		// file system to examine, ignored if (-1)
   bool xattr;			// use user_xattr
+  bool workaround;              // enable or disable workarounds
   int tmpfd;
   char *tmpname;
 };

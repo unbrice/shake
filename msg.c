@@ -41,6 +41,7 @@ You have to mount your partition with user_xattr option.\n\
   -T, --big-tolerance	multiply crumbratio and divide maxfnumber of big files\n\
   -v, --verbose		increase the verbosity level\n\
   -V, --version		show version number and copyright\n\
+  -W, --no-workaround   disable glibc 2.4 workaround\n\
   -X, --no-xattr	disable usage of xattr\n\
 Report bugs to <brice.arnould+shake@gmail.com> or at\n\
 http://savannah.nongnu.org/projects/shake\
