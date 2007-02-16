@@ -27,13 +27,13 @@ clean:  dist
 	find -name '*.~' -exec rm {} \;
 
 shake: executive.o judge.o linux.o main.o msg.o
-	$(CC) $(CFLAGS) $(LFLAGS) $? -o $@
+	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
 
 shake-static: executive.o judge.o linux.o main.o msg.o
 	$(CC) $(CFLAGS) $(LFLAGS) -static -u attr_setf -u attr_getf $? -o $@
 
 unattr: executive.o unattr.o linux.o
-	$(CC) $(CFLAGS) $(LFLAGS) $? -o $@
+	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
 
 %.o: %.c executive.h judge.h linux.h msg.h Makefile
 	$(CC) $(CFLAGS) -c $< -o $@
