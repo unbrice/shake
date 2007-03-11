@@ -29,7 +29,7 @@
 #include "linux.h"		// getopt()
 
 #include "executive.h"
-void strip (char *name, char **prefixes);
+void strip (char *name, char **attrs);
 
 void
 show_help (void)
@@ -51,15 +51,15 @@ http://savannah.nongnu.org/projects/shake\
  * Else, or if open failed, do nothing.
  */
 void
-look (char *name, char **prefix)
+look (char *name, char **attr)
 {
-  assert (name && prefix);
+  assert (name && attr);
   struct stat st;
   /* stat */
   if (-1 == lstat (name, &st))
     error (0, errno, "%s: stat() failed", name);
   else if (S_ISREG (st.st_mode))	// regular file
-    strip (name, prefix);
+    strip (name, attr);
   else if (S_ISDIR (st.st_mode))	// directory
     {
       /* list it */
@@ -72,7 +72,7 @@ look (char *name, char **prefix)
       /* Go through the list */
       for (char **name = flist; *name; name++)
 	{
-	  look (*name, prefix);
+	  look (*name, attr);
 	  free (*name);
 	}
       free (flist);
@@ -91,11 +91,11 @@ these matters, see the file named GPL.txt.\
 ");
 }
 
-/* This function remove attributes attrs[0], attr[1]... attr[n]
+/* This function remove attributes attr[0], attr[1]... attr[n]
  * with attr[n] == NULL, from the file named name
  */
 void
-strip (char *name, char **attrs)
+strip (char *name, char **attr)
 {
   assert (name), assert (attr);
   int fd = open (name, O_WRONLY);
@@ -104,7 +104,7 @@ strip (char *name, char **attrs)
       error (0, errno, "%s: open() failed", name);
       return;
     }
-  for (char **attr = attrs; *attr; attr++)
+  for (char **attr = attr; *attr; attr++)
     attr_removef (fd, *attr, ATTR_DONTFOLLOW);
   close (fd);
 }
