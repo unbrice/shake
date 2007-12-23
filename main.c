@@ -1,5 +1,5 @@
 /* SHAKE: rewrite fragmented files, maybe improving performance
- * Copyright (c) 2006 Brice Arnould
+ * Copyright (c) 2006-2008 Brice Arnould
  */
 /*  As you'll see, I don't understand how ReiserFS, nor extN or
  * others works. I hacked this to waste my time and for that

@@ -1,5 +1,5 @@
 /* unattr: quick and dirty hack to remove unwanted Xattrs
- * (c) 2006 Brice Arnould
+ * (c) 2006-2008 Brice Arnould
  *  This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -84,7 +84,7 @@ show_version (void)
 {
   puts ("\
 Unattr " VERSION "\n\
-Copyright (C) 2006 Brice Arnould.\n\
+Copyright (C) 2006-2008 Brice Arnould.\n\
 Unattr comes with ABSOLUTELY NO WARRANTY. You may redistribute copies of Unattr\n\
 under the terms of the GNU General Public License. For more information about\n\
 these matters, see the file named GPL.txt.\
