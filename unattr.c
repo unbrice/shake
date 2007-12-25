@@ -120,7 +120,7 @@ main (int argc, char **argv)
     while (1)
       {
 	int c;
-	static struct option long_options[] = {
+	static const struct option long_options[] = {
 	  {"attr", required_argument, NULL, 'a'},
 	  {"help", no_argument, NULL, 'h'},
 	  {"version", no_argument, NULL, 'V'},

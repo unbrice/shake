@@ -69,6 +69,10 @@
 #include "judge.h"
 #include "executive.h"
 #include "msg.h"
+#include "signals.h"
+
+
+
 
 /*  Read the string at str. If it is not a number, or if the number is
  * < min, exit with an error. Else return the number as an integer.
@@ -135,7 +139,7 @@ parseopts (int argc, char **restrict argv, struct law *restrict l)
     {
       int c;
       /* Associate long names to short ones */
-      static struct option long_options[] = {
+      static const struct option long_options[] = {
 	{"max-crumbc", required_argument, NULL, 'c'},
 	{"max-fragc", required_argument, NULL, 'C'},
 	{"max-deviance", required_argument, NULL, 'd'},
@@ -274,6 +278,7 @@ main (int argc, char **argv)
     l.tmpfd = tmpfd;
     l.tmpname = tmpname;
   }
+  install_sighandler(tmpname);
 
   /* Do the stuff (tm) */
   show_header (&l);

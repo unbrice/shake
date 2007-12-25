@@ -1,4 +1,4 @@
-VERSION = 0.29
+VERSION = 0.30
 CC	= gcc
 LFLAGS	= -lattr
 
@@ -26,16 +26,16 @@ clean:  dist
 	rm -f unattr shake shake-static
 	find -name '*.~' -exec rm {} \;
 
-shake: executive.o judge.o linux.o main.o msg.o
+shake: executive.o judge.o linux.o main.o msg.o signals.o
 	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
 
 shake-static: executive.o judge.o linux.o main.o msg.o
 	$(CC) $(CFLAGS) $(LFLAGS) -static -u attr_setf -u attr_getf $? -o $@
 
-unattr: executive.o unattr.o linux.o
+unattr: executive.o linux.o signals.o unattr.o
 	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
 
-%.o: %.c executive.h judge.h linux.h msg.h Makefile
+%.o: %.c executive.h judge.h linux.h msg.h signals.h Makefile
 	$(CC) $(CFLAGS) -c $< -o $@
 
 doc/%.8: % Makefile \

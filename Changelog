@@ -1,3 +1,6 @@
+2007-12-26 :  shake 0.30 ; urgency=low
+	* Added a signal hander that try to keep files as safe as it can
+	* Changed the licence, now distributed under GPL v3 or greater
 2007-02-01 :  shake 0.29 ; urgency=high
 	* Added a workaround against ld behaviour, as repported by mrsaccess
 2006-11-19 : shake 0.28 ; urgency=low

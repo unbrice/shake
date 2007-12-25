@@ -27,8 +27,9 @@
 #include <sys/types.h>		// opendir()
 #include <dirent.h>		// opendir()
 #include <sys/time.h>		// futimes()
-#include <signal.h>		// sigprocmask, sigsetops
 #include "executive.h"
+#include "signals.h"
+
 
 
 /*  Copy the content of file referenced by in_fd to out_fd
@@ -168,19 +169,12 @@ fcopy (int in_fd, int out_fd, size_t gap)
 }
 
 
-/* Mark a file as shaked and block signals
+/* Mark a file as shaked
  */
 static void
 capture (struct accused *a, struct law *l)
 {
   assert (a && l);
-  /* Block signals */
-  {
-    sigset_t sset;
-    sigfillset (&sset);
-    sigdelset (&sset, SIGTSTP);
-    sigprocmask (SIG_BLOCK, &sset, NULL);
-  }
   /* Update position time */
   if (l->xattr && -1 == set_ptime (a->fd))
     {
@@ -190,7 +184,7 @@ capture (struct accused *a, struct law *l)
   return;
 }
 
-/* Restore mtime of a file then unblock signals
+/* Restore mtime of a file
  */
 static void
 release (struct accused *a, struct law *l)
@@ -206,12 +200,6 @@ release (struct accused *a, struct law *l)
     tv[1].tv_usec = 0;
     futimes (a->fd, tv);
   }
-  /* unblock signals */
-  {
-    sigset_t sset;
-    sigfillset (&sset);
-    sigprocmask (SIG_UNBLOCK, &sset, NULL);
-  }
   return;
 }
 
@@ -225,16 +213,22 @@ shake_reg (struct accused *a, struct law *l)
   assert (a && l);
   assert (S_ISREG (a->mode)), assert (a->guilty);
   const uint GAP = MAGICLEAP * 4;
+  char *msg;
   if (l->pretend)
     return 0;
   capture (a, l);
-  /* Make a backup */
-  if (-1 == fcopy (a->fd, l->tmpfd, MAGICLEAP))
+  if (-1 == asprintf(&msg, "%s: unrecoverable internal error ! file has been saved at %s",
+		     a->name, l->tmpname))
+    msg = NULL;
+  /* Check for previous errors and make a backup */
+  if (msg && -1 == fcopy (a->fd, l->tmpfd, MAGICLEAP))
     {
       int errsv = errno;
       unlink (l->tmpname);	// could work
       error (1, errsv, "%s: temporary copy failed", a->name);
     }
+  /* Disable most signals (except critical ones) */
+  restrict_signals(msg);
   /*  Ask the FS to put the file at a new place, without losing metadatas
    * nor hard links. Works on ReiserFS but should be tested on other filesystems
    */
@@ -246,7 +240,10 @@ shake_reg (struct accused *a, struct law *l)
   if (-1 == fcopy (l->tmpfd, a->fd, GAP))
     error (1, errno, "%s: restore failed ! file have been saved at %s",
 	   a->name, l->tmpname);
+  /* Restore most signals */
+  restore_signals();
   release (a, l);
+  free (msg);
   return 0;
 }
 
