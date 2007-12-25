@@ -20,7 +20,7 @@
 /*  Set signals.c/handle_signals() as the default handler, and tempfile
  * as the current temporary file
  */
-void install_sighandler(const char *tempfile);
+void install_sighandler (const char *tempfile);
 
 /* In this mode :
  *  signals raised by internal errors, such as SIGSEV, stop the program
@@ -29,11 +29,11 @@ void install_sighandler(const char *tempfile);
  *  others are suspended
  * It is intended to be used when current_tempfile is the only copy of a file
  */
-void restrict_signals(const char *msg);
+void restrict_signals (const char *msg);
 
 /*  In this mode, signals are handled with the default handler, appart
  * that the temporary file will be deleted.
  */
-void restore_signals(void);
+void restore_signals (void);
 
 #endif

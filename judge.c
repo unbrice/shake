@@ -189,7 +189,7 @@ judge_reg (struct accused *a, struct law *l)
   double tol = tol_reg (a, l);
   if (MAX_TOL == tol)
     return false;
-  if (l->workaround && strstr(a->name, ".so")) // TODO: investigate on ld lock
+  if (l->workaround && strstr (a->name, ".so"))	// TODO: investigate on ld lock
     return false;
   if (a->age < l->new * tol)
     return false;

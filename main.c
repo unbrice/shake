@@ -70,8 +70,8 @@
 #include "executive.h"
 #include "msg.h"
 #include "signals.h"
-
 
+
 
 
 /*  Read the string at str. If it is not a number, or if the number is
@@ -278,7 +278,7 @@ main (int argc, char **argv)
     l.tmpfd = tmpfd;
     l.tmpname = tmpname;
   }
-  install_sighandler(tmpname);
+  install_sighandler (tmpname);
 
   /* Do the stuff (tm) */
   show_header (&l);

@@ -29,8 +29,8 @@
 #include <sys/time.h>		// futimes()
 #include "executive.h"
 #include "signals.h"
-
 
+
 
 /*  Copy the content of file referenced by in_fd to out_fd
  *  Make file sparse if there's more than gap consecutive '\0',
@@ -217,8 +217,10 @@ shake_reg (struct accused *a, struct law *l)
   if (l->pretend)
     return 0;
   capture (a, l);
-  if (-1 == asprintf(&msg, "%s: unrecoverable internal error ! file has been saved at %s",
-		     a->name, l->tmpname))
+  if (-1 ==
+      asprintf (&msg,
+		"%s: unrecoverable internal error ! file has been saved at %s",
+		a->name, l->tmpname))
     msg = NULL;
   /* Check for previous errors and make a backup */
   if (msg && -1 == fcopy (a->fd, l->tmpfd, MAGICLEAP))
@@ -228,7 +230,7 @@ shake_reg (struct accused *a, struct law *l)
       error (1, errsv, "%s: temporary copy failed", a->name);
     }
   /* Disable most signals (except critical ones) */
-  restrict_signals(msg);
+  restrict_signals (msg);
   /*  Ask the FS to put the file at a new place, without losing metadatas
    * nor hard links. Works on ReiserFS but should be tested on other filesystems
    */
@@ -241,7 +243,7 @@ shake_reg (struct accused *a, struct law *l)
     error (1, errno, "%s: restore failed ! file have been saved at %s",
 	   a->name, l->tmpname);
   /* Restore most signals */
-  restore_signals();
+  restore_signals ();
   release (a, l);
   free (msg);
   return 0;
