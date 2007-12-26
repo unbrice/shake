@@ -52,6 +52,9 @@ fcopy (int in_fd, int out_fd, size_t gap)
       || -1 == lseek (out_fd, (off_t) 0, SEEK_SET)
       || -1 == ftruncate (out_fd, (off_t) 0))
     return -1;
+  /* Optimisation (on Linux it double the readahead window) */
+  posix_fadvise(out_fd, (off_t) 0,  (off_t) 0, POSIX_FADV_SEQUENTIAL);
+  posix_fadvise(out_fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
   /* Get a buffer... */
   {
     if (gap)
