@@ -1,0 +1,7 @@
+To build shake, go into the build directory
+ cd build/
+run cmake from there, he might tell you that you need libattr1-dev
+ cmake ..
+if everything is fine, you can now run
+ make install
+.
