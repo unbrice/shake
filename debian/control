@@ -1,0 +1,20 @@
+Source: shake
+Section: admin
+Priority: optional
+Maintainer: Brice Arnould <brice.arnould+shake@gmail.com>
+Build-Depends: cdbs (>= 0.4.50), debhelper (>= 5), libattr1-dev (>= 2.0.0), cmake (>= 2.4)
+Standards-Version: 3.7.3
+
+Package: shake
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Defragmenter (rewrite fragmented or misplaced files)
+ Shake is a defragmenter that runs in userspace.
+ There is no black magic involved : it works just by rewriting
+ misplaced fragments. But it has some heuristics that could make it
+ more  efficient than other tools, including  defrag and, maybe,
+ xfs_fsr.
+ .
+ As an example, it allows you to write find -iname '*.mp3' | sort |
+ shake to defrag all mp3 in a directory, puting together on the disk
+ those close in lexical order.
