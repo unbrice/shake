@@ -59,11 +59,18 @@ ENDIF ()
 
 ## ALL  ##
 INCLUDE (CheckFunctionExists)
+set (CMAKE_REQUIRED_LIBRARIES attr)
+check_function_exists (attr_setf HAVE_LIBATTR)
 check_function_exists (fallocate HAVE_FALLOCATE)
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/build/config.h.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/config.h
   ESCAPE_QUOTES)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+
+## SANITY CHECK ##
+IF (NOT HAVE_LIBATTR)
+  message (SEND_ERROR "You need libattr for Shake to work properly. It might be in a package named libattr1-dev.")
+ENDIF()
 
 #### Installation ####
 install (TARGETS shake unattr
