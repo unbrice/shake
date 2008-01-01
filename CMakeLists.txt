@@ -18,9 +18,10 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.4)
 set (CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 set (CMAKE_C_FLAGS "$ENV{CFLAGS}")
 MACRO (add_help2man_manpage file command)
-  get_target_property(HELP2MAN_COMMAND ${command} LOCATION)
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
-    COMMAND help2man ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} ${HELP2MAN_COMMAND}
+  get_target_property (HELP2MAN_COMMAND ${command} LOCATION)
+  find_program (HELP2MAN_LOCATION help2man)
+  add_custom_command (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
+    COMMAND ${HELP2MAN_LOCATION} ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} ${HELP2MAN_COMMAND}
     DEPENDS ${command}
     COMMENT "Building manpage for ${command}")
 ENDMACRO ()
