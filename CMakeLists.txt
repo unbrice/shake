@@ -33,20 +33,21 @@ MACRO (call_unix2man_after command)
   get_target_property(exe ${command} LOCATION)
   add_custom_command(TARGET ${command}
     POST_BUILD
-    COMMAND help2man    ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${command}.8 ${exe}
+    COMMAND help2man ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${command}.8 ${exe}
     COMMENT Build manpage for shake)
 ENDMACRO ()
 call_unix2man_after(shake)
 call_unix2man_after(unattr)
 
-#### Platform Checks ####
-target_link_libraries(shake attr)
-target_link_libraries(unattr attr)
+#### Platform Specific ####
 
 ## LINUX  ##
 IF (CMAKE_SYSTEM_NAME MATCHES Linux)
-  add_definitions("-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64")  # For 64 bits files
-  add_definitions("-D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200112L") # For posix_fallocate
+  add_definitions ("-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64")  # For 64 bits files
+  add_definitions ("-D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200112L") # For posix_fallocate
+  list (APPEND CMAKE_REQUIRED_LIBRARIES attr)
+  target_link_libraries (shake attr)
+  target_link_libraries (unattr attr)
 ELSE ()
   message (STATUS "For now, shake has only been tested under GNU/Linux. I would be really interested by your experience under other OS, if you have time to write me at <brice.arnould+shake@gmail.com>")
 ENDIF ()
@@ -59,10 +60,9 @@ ENDIF ()
 
 ## ALL  ##
 INCLUDE (CheckFunctionExists)
-set (CMAKE_REQUIRED_LIBRARIES attr)
 check_function_exists (attr_setf HAVE_LIBATTR)
 check_function_exists (fallocate HAVE_FALLOCATE)
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/build/config.h.cmake
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/config.h
   ESCAPE_QUOTES)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
