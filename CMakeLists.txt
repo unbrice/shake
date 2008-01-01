@@ -84,7 +84,7 @@ install (FILES ${CMAKE_CURRENT_BINARY_DIR}/shake.8 ${CMAKE_CURRENT_BINARY_DIR}/u
   DESTINATION share/man/man8)
 ## Debian ##
 set (DEBIAN_PACKAGE_SECTION "admin")
-set (DEBIAN_PACKAGE_BUILDS_DEPENDS "debhelper (>> 5.0.0) libattr1-dev (>= 2.0.0), cmake (>= 2.6)")
+set (DEBIAN_PACKAGE_BUILDS_DEPENDS "cdbs (>= 0.4.50), cmake (>= 2.4), debhelper (>= 5), help2man (>= 1.26), libattr1-dev (>= 2.0.0)")
 set (DEBIAN_PACKAGE_DEPENDS "libattr1 (>= 2.0.0)")
 ## Packages ##
 SET(CPACK_PACKAGE_VERSION_MAJOR ${CPACK_VERSION_MAJOR})
