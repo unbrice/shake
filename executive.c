@@ -53,8 +53,8 @@ fcopy (int in_fd, int out_fd, size_t gap)
       || -1 == ftruncate (out_fd, (off_t) 0))
     return -1;
   /* Optimisation (on Linux it double the readahead window) */
-  posix_fadvise(in_fd, (off_t) 0,  (off_t) 0, POSIX_FADV_SEQUENTIAL);
-  posix_fadvise(in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
+  posix_fadvise (in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_SEQUENTIAL);
+  posix_fadvise (in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
   /* Get a buffer... */
   {
     if (gap)
@@ -128,7 +128,7 @@ fcopy (int in_fd, int out_fd, size_t gap)
 	if (gap && cant_wait)
 	  {
 	    /* Should we make a hole ? */
-	    if (empty_buffs >= gap)
+	    if (empty_buffs >= gap && len != 0)	// Don't finish with a hole if len == 0
 	      {
 		if (-1 ==
 		    lseek (out_fd, (off_t) (empty_buffs * buffsize),
@@ -225,12 +225,15 @@ shake_reg (struct accused *a, struct law *l)
 		"%s: unrecoverable internal error ! file has been saved at %s",
 		a->name, l->tmpname))
     msg = NULL;
-  /* Check for previous errors and make a backup */
+  /* Error handling */
   if (msg && -1 == fcopy (a->fd, l->tmpfd, MAGICLEAP))
     {
       int errsv = errno;
       unlink (l->tmpname);	// could work
-      error (1, errsv, "%s: temporary copy failed", a->name);
+      if (msg)
+	error (1, errsv, "%s: temporary copy failed", a->name);
+      else
+	error (1, errsv, "%s: failed to initialise failure manager", a->name);
     }
   /* Disable most signals (except critical ones) */
   restrict_signals (msg);

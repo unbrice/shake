@@ -1,4 +1,5 @@
-2007-12-26 :  shake 0.30 ; urgency=low
+2007-12-26 :  shake 0.30 ; urgency=high
+	* Fixed a crash on files ending with a hole
 	* Added an INSTALL file
 	* Added a Debian package
 	* Rewrote the build system using cmake
