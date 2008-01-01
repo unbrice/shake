@@ -18,7 +18,7 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 2.4)
 set (CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 set (CMAKE_C_FLAGS "$ENV{CFLAGS}")
-MACRO (add_unix2man_manpage file command)
+MACRO (add_help2man_manpage file command)
   get_target_property(exe ${command} LOCATION)
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
     COMMAND help2man ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} ${exe}
@@ -38,8 +38,8 @@ set (VERSION "${CPACK_VERSION_MAJOR}.${CPACK_VERSION_MINOR}")
 #### Targets ####
 add_executable (shake executive.c judge.c linux.c main.c msg.c signals.c)
 add_executable (unattr executive.c linux.c signals.c unattr.c)
-add_unix2man_manpage (shake.8 shake)
-add_unix2man_manpage (unattr.8 unattr)
+add_help2man_manpage (shake.8 shake)
+add_help2man_manpage (unattr.8 unattr)
 add_custom_target (doc
   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/shake.8
           ${CMAKE_CURRENT_BINARY_DIR}/unattr.8)
