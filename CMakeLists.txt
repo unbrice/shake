@@ -14,14 +14,23 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
+#### MACROS AND WORKAROUNDS ####
 CMAKE_MINIMUM_REQUIRED (VERSION 2.4)
 set (CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
+set (CMAKE_C_FLAGS "$ENV{CFLAGS}")
+MACRO (add_unix2man_manpage file command)
+  get_target_property(exe ${command} LOCATION)
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
+    COMMAND help2man ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} ${exe}
+    DEPENDS ${command}
+    COMMENT "Building manpage for ${command}")
+ENDMACRO ()
 
+#### PROJECT CONFIG ####
 project (Shake)
 set (CPACK_VERSION_MAJOR "0")
 set (CPACK_VERSION_MINOR "30")
 set (CPACK_PACKAGE_CONTACT "Brice Arnould <brice.arnould+shake@gmail.com>")
-set (CMAKE_C_FLAGS "$ENV{CFLAGS}")
 
 set (VERSION "${CPACK_VERSION_MAJOR}.${CPACK_VERSION_MINOR}")
 
@@ -29,15 +38,11 @@ set (VERSION "${CPACK_VERSION_MAJOR}.${CPACK_VERSION_MINOR}")
 #### Targets ####
 add_executable (shake executive.c judge.c linux.c main.c msg.c signals.c)
 add_executable (unattr executive.c linux.c signals.c unattr.c)
-MACRO (call_unix2man_after command)
-  get_target_property(exe ${command} LOCATION)
-  add_custom_command(TARGET ${command}
-    POST_BUILD
-    COMMAND help2man ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${command}.8 ${exe}
-    COMMENT Build manpage for shake)
-ENDMACRO ()
-call_unix2man_after(shake)
-call_unix2man_after(unattr)
+add_unix2man_manpage (shake.8 shake)
+add_unix2man_manpage (unattr.8 unattr)
+add_custom_target (doc
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/shake.8
+          ${CMAKE_CURRENT_BINARY_DIR}/unattr.8)
 
 #### Platform Specific ####
 
