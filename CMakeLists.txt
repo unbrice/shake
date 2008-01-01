@@ -18,9 +18,9 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.4)
 set (CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 set (CMAKE_C_FLAGS "$ENV{CFLAGS}")
 MACRO (add_help2man_manpage file command)
-  get_target_property(exe ${command} LOCATION)
+  get_target_property(HELP2MAN_COMMAND ${command} LOCATION)
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
-    COMMAND help2man ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} ${exe}
+    COMMAND help2man ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} ${HELP2MAN_COMMAND}
     DEPENDS ${command}
     COMMENT "Building manpage for ${command}")
 ENDMACRO ()
@@ -39,7 +39,7 @@ add_executable (shake executive.c judge.c linux.c main.c msg.c signals.c)
 add_executable (unattr executive.c linux.c signals.c unattr.c)
 add_help2man_manpage (shake.8 shake)
 add_help2man_manpage (unattr.8 unattr)
-add_custom_target (doc
+add_custom_target (doc ALL
   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/shake.8
           ${CMAKE_CURRENT_BINARY_DIR}/unattr.8)
 
@@ -53,7 +53,7 @@ IF (CMAKE_SYSTEM_NAME MATCHES Linux)
   target_link_libraries (shake attr)
   target_link_libraries (unattr attr)
 ELSE ()
-  message (STATUS "For now, shake has only been tested under GNU/Linux. I would be really interested by your experience under other OS, if you have time to write me at <brice.arnould+shake@gmail.com>")
+  message ("For now, shake has only been tested under GNU/Linux. I would be really interested by your experience under other OS, if you have time to write me at <brice.arnould+shake@gmail.com>")
 ENDIF ()
 
 ## GCC  ##
