@@ -81,7 +81,7 @@ fcopy (int in_fd, int out_fd, size_t gap)
       }
     buffer = alloca (buffsize);	// better than "goto freeall"... or not ?
     // Else would read uninitialised datas when filesize < buffsize
-    // and is_empty wouldn't be set correctly.
+    // and is_empty could be set uncorrectly.
     memset (buffer, 0xFF, buffsize);
   }
   /* Let's go ! */
