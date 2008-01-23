@@ -1,4 +1,5 @@
-2008-01-02 :  shake 0.30 ; urgency=high
+2008-01-23 :  shake 0.30 ; urgency=high
+	* Added the ability to continue when when it fails to list a directory
 	* Fixed a crash on files ending with a hole
 	* Added an INSTALL file
 	* Added a Debian package

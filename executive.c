@@ -285,6 +285,7 @@ atimesort (const void *a, const void *b)
 
 /* Return an array containing file names in the named directory,
  * excepted "." and "..".
+ * Return NULL in case of error.
  * If sort is true, file names are sorted by atime.
  * LIMIT : INT_MAX files
  */
@@ -292,13 +293,16 @@ char **
 list_dir (char *name, int sort)
 {
   assert (name);
-  const size_t BUFFSTEP = 32;
+  const size_t BUFFSTEP = 128;
   size_t namel = strlen (name);
   /* Read entries one by one and store their name in a buffer */
   uint n = 0;
   char **buff = malloc (sizeof (*buff) * BUFFSTEP);
   if (!buff)
-    error (1, errno, "%s: malloc() failed", name);
+    {
+      error (0, errno, "%s: malloc() failed", name);
+      return NULL;
+    }
   buff[0] = NULL;
   struct dirent *ent = NULL;
   DIR *dir = opendir (name);
@@ -311,10 +315,10 @@ list_dir (char *name, int sort)
     {
       char *dname = ent->d_name;
       char *fname;		// full name
-      if (n == UINT_MAX)
+      if (n == INT_MAX)
 	{
-	  error (0, 0, "%s: more than %i files", name, INT_MAX - 1);
-	  return NULL;
+	  error (0, 0, "%s: more than %u files", name, INT_MAX - 1);
+	  break;
 	}
       /* ignore "." and ".." */
       if (0 == strcmp (dname, ".") || 0 == strcmp (dname, ".."))
@@ -328,10 +332,8 @@ list_dir (char *name, int sort)
 	  char **nbuff = realloc (buff, (n + 2 + BUFFSTEP) * sizeof (*buff));
 	  if (!nbuff)
 	    {
-	      /* TODO : don't abort, because it's maybe just that this dir
-	       * is too large */
-	      error (1, errno, "%s: realloc() failed", name);
-	      return NULL;
+	      error (0, errno, "%s: realloc() failed", name);
+	      break;
 	    }
 	  buff = nbuff;
 	}
@@ -339,14 +341,17 @@ list_dir (char *name, int sort)
       fname = malloc (namel + strlen (dname) + 2);
       if (!fname)
 	{
-	  error (1, errno, "%s: malloc() failed", name);
-	  return NULL;
+	  error (0, errno, "%s: malloc() failed", name);
+	  /* Try with the next file */
+	  n--;
+	  continue;
 	}
       strcpy (fname, name);
       fname[namel] = '/';
       strcpy (fname + namel + 1, dname);
       buff[n] = fname;
     }
+  /* They are some breaks in the for loop */
   if (sort)
     qsort (buff, n, sizeof (*buff), &atimesort);
   /* A NULL entry will mark the end of the buffer */
