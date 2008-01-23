@@ -28,7 +28,7 @@
 static const char *current_msg = NULL;
 static const char *current_tempfile = NULL;
 static bool critical_mode = false;	// Tell in which mode we are, please see
-				        // restrict_signals and restore_signals
+					// restrict_signals and restore_signals
 
 /*  If we're in critical_mode, display current_msg and exit, else
  * unlink the current_tempfile and call he default handler
@@ -61,7 +61,7 @@ install_sighandler (const char *tempfile)
   current_tempfile = tempfile;
   sigemptyset (&sa.sa_mask);
   sa.sa_flags = SA_RESETHAND;	// All signals after the firsts will be
-                                // handled by system's default handlers
+				// handled by system's default handlers
   sa.sa_handler = handle_signals;
   /* Set our handler as the one that will handle critical situations */
   sigaction (SIGFPE, &sa, NULL);
