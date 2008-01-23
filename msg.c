@@ -15,7 +15,7 @@
  */
 #include <stdio.h>		// puts(), printf(), putchar()
 
-#include "build/config.h"
+#include "config.h"
 #include "msg.h"
 
 void

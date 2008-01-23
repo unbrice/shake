@@ -28,7 +28,7 @@
 #include <unistd.h>		// close()
 #include "linux.h"		// getopt()
 
-#include "build/config.h"
+#include "config.h"
 #include "executive.h"
 void strip (char *name, char **attrs);
 
