@@ -44,7 +44,7 @@
 int
 fcopy (int in_fd, int out_fd, size_t gap)
 {
-  assert (in_fd > -1), assert (out_fd > -1), assert (gap >= 0);
+  assert (in_fd > -1), assert (out_fd > -1);
   size_t buffsize = 65535;
   int *buffer;
   /* Prepare files */
@@ -124,7 +124,7 @@ fcopy (int in_fd, int out_fd, size_t gap)
 	      empty_buffs++;	// (can't overflow, see cant_wait two lines down)
 	  }
 	/* if in sparse mode, we'll wait for eof or data, or int overflow before writing */
-	cant_wait = !is_empty || eof || (empty_buffs + 1) * buffsize < 0;
+	cant_wait = !is_empty || eof || (empty_buffs + 1) * buffsize > INT_MAX;
 	if (gap && cant_wait)
 	  {
 	    /* Should we make a hole ? */

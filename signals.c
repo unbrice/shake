@@ -24,7 +24,7 @@
 #include <unistd.h>		// unlink()
 #include <stdbool.h>
 
-#pragma warning Everything in this file is not thread safe
+#warning Everything in this file is not thread safe
 static const char *current_msg = NULL;
 static const char *current_tempfile = NULL;
 static bool critical_mode = false;	// Tell in which mode we are, please see

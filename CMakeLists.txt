@@ -59,8 +59,8 @@ ENDIF ()
 ## GCC  ##
 IF (CMAKE_COMPILER_IS_GNUCC)
   set (CMAKE_C_FLAGS "$ENV{CFLAGS}")
-  list (APPEND CMAKE_C_FLAGS "-std=gnu99 -O2 -Wall -pedantic-errors -Wcast-align -Wpointer-arith -Wbad-function-cast")
-  set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -ggdb3 -Wconversion -Werror")
+  list (APPEND CMAKE_C_FLAGS "-std=gnu99 -O2 -Wall -Wextra -Wcast-align -Wpointer-arith -Wbad-function-cast -Wno-sign-compare")
+  set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -ggdb3 -pedantic -Wconversion -Werror")
 ENDIF ()
 
 ## ALL  ##
