@@ -16,7 +16,6 @@
 #### MACROS AND WORKAROUNDS ####
 CMAKE_MINIMUM_REQUIRED (VERSION 2.4)
 set (CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-set (CMAKE_C_FLAGS "$ENV{CFLAGS}")
 MACRO (add_help2man_manpage file command)
   get_target_property (HELP2MAN_COMMAND ${command} LOCATION)
   find_program (HELP2MAN_LOCATION help2man)
@@ -59,11 +58,13 @@ ENDIF ()
 
 ## GCC  ##
 IF (CMAKE_COMPILER_IS_GNUCC)
+  set (CMAKE_C_FLAGS "$ENV{CFLAGS}")
   list (APPEND CMAKE_C_FLAGS "-std=gnu99 -O2 -Wall -pedantic-errors -Wcast-align -Wpointer-arith -Wbad-function-cast")
   set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -ggdb3 -Wconversion -Werror")
 ENDIF ()
 
 ## ALL  ##
+INCLUDE (CheckIncludeFiles)
 INCLUDE (CheckFunctionExists)
 check_function_exists (attr_setf HAVE_LIBATTR)
 check_function_exists (fallocate HAVE_FALLOCATE)
@@ -74,7 +75,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
 ## SANITY CHECK ##
 IF (NOT HAVE_LIBATTR)
-  message (SEND_ERROR "You need libattr for Shake to work properly. It might be in a package named libattr1-dev.")
+  message (SEND_ERROR "You need libattr headers for Shake to build. They might be in a package named libattr1-dev.")
 ENDIF()
 
 #### Installation ####
@@ -87,8 +88,8 @@ set (DEBIAN_PACKAGE_SECTION "admin")
 set (DEBIAN_PACKAGE_BUILDS_DEPENDS "cdbs (>= 0.4.50), cmake (>= 2.4), debhelper (>= 5), help2man (>= 1.26), libattr1-dev (>= 2.0.0)")
 set (DEBIAN_PACKAGE_DEPENDS "libattr1 (>= 2.0.0)")
 ## Packages ##
-SET(CPACK_PACKAGE_VERSION_MAJOR ${CPACK_VERSION_MAJOR})
-SET(CPACK_PACKAGE_VERSION_MINOR ${CPACK_VERSION_MINOR})
-SET(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/GPL.txt)
+set (CPACK_PACKAGE_VERSION_MAJOR ${CPACK_VERSION_MAJOR})
+set (CPACK_PACKAGE_VERSION_MINOR ${CPACK_VERSION_MINOR})
+set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/GPL.txt)
 set (CPACK_GENERATOR "STGZ;TGZ;TZ")
 INCLUDE(CPack)
