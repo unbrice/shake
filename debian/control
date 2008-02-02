@@ -12,7 +12,7 @@ Description: Defragmenter (rewrite fragmented or misplaced files)
  Shake is a defragmenter that runs in userspace.
  There is no black magic involved : it works just by rewriting
  misplaced fragments. But it has some heuristics that could make it
- more  efficient than other tools, including  defrag and, maybe,
+ more efficient than other tools, including defrag and, maybe,
  xfs_fsr.
  .
  As an example, it allows you to write find -iname '*.mp3' | sort |
