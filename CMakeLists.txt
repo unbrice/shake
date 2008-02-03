@@ -28,7 +28,7 @@ ENDMACRO ()
 #### PROJECT CONFIG ####
 project (Shake)
 set (CPACK_VERSION_MAJOR "0")
-set (CPACK_VERSION_MINOR "30")
+set (CPACK_VERSION_MINOR "31")
 set (CPACK_PACKAGE_CONTACT "Brice Arnould <brice.arnould+shake@gmail.com>")
 
 set (VERSION "${CPACK_VERSION_MAJOR}.${CPACK_VERSION_MINOR}")
