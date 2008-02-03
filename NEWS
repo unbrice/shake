@@ -1,3 +1,5 @@
+2008-02-03 :  shake 0.31 ; urgency=low
+	* Fixed build when CFLAGS are defined in environment
 2008-01-23 :  shake 0.30 ; urgency=high
 	* Added the ability to continue when when it fails to list a directory
 	* Fixed a crash on files ending with a hole
