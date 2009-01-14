@@ -15,10 +15,11 @@
 
 #### MACROS AND WORKAROUNDS ####
 CMAKE_MINIMUM_REQUIRED (VERSION 2.4)
+cmake_policy(SET CMP0005 OLD)
 set (CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
+
 MACRO (add_help2man_manpage file command)
   get_target_property (HELP2MAN_COMMAND ${command} LOCATION)
-  find_program (HELP2MAN_LOCATION help2man)
   add_custom_command (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
     COMMAND ${HELP2MAN_LOCATION} ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} ${HELP2MAN_COMMAND}
     DEPENDS ${command}
@@ -33,6 +34,11 @@ set (CPACK_PACKAGE_CONTACT "Brice Arnould <brice.arnould+shake@gmail.com>")
 
 set (VERSION "${CPACK_VERSION_MAJOR}.${CPACK_VERSION_MINOR}")
 
+#### System checks ####
+find_program (HELP2MAN_LOCATION help2man)
+IF (NOT HELP2MAN_LOCATION)
+  message (SEND_ERROR "Cannot find help2man. Please install it.")
+ENDIF ()
 
 #### Targets ####
 add_executable (shake executive.c judge.c linux.c main.c msg.c signals.c)
@@ -50,7 +56,7 @@ IF (CMAKE_SYSTEM_NAME MATCHES Linux)
   add_definitions ("-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64")  # For 64 bits files
   add_definitions ("-D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200112L") # For posix_fallocate
   list (APPEND CMAKE_REQUIRED_LIBRARIES attr)
-  target_link_libraries (shake attr)
+  target_link_libraries (shake attr.a)
   target_link_libraries (unattr attr)
 ELSE ()
   message ("For now, shake has only been tested under GNU/Linux. I would be really interested by your experience under other OS, if you have time to write me at <brice.arnould+shake@gmail.com>")
