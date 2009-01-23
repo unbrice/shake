@@ -40,7 +40,7 @@ handle_signals (int sig)
     {
       /* We recieve only SIGILL, SIGFPE or SIGSEG in this mode */
       assert (current_msg);
-      error (1, 0, current_msg);
+      error (1, 0, "%s", current_msg);
     }
   else
     {
