@@ -14,6 +14,8 @@
  *
  */
 #include "linux.h"
+#include "executive.h"
+#include "signals.h"
 #include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
@@ -27,15 +29,13 @@
 #include <sys/types.h>		// opendir()
 #include <dirent.h>		// opendir()
 #include <sys/time.h>		// futimes()
-#include "executive.h"
-#include "signals.h"
 
-
 
 /*  Copy the content of file referenced by in_fd to out_fd
  *  Make file sparse if there's more than gap consecutive '\0',
  * and if gap != 0
- *  Return -1 and set errno if failed, anything else if succeded
+ *  Return -1 and set errno if failed, -2 if canceled, anything else
+ *  if succeded
  *  This part is crucial as it is the one which do the job and
  * which can break file, it have been carfully read and tested
  * so it would be dangerous to rewrite it... however it's
@@ -95,12 +95,16 @@ fcopy (int in_fd, int out_fd, size_t gap)
 	empty = alloca (buffsize);	// better than goto free()... or not ?
 	if (!empty)
 	  return -1;
-	memset (empty, 0, buffsize);
+	memset (empty, '\0', buffsize);
       }
     while (true)
       {
 	bool eof;		// tell if we are at end of file
 	bool cant_wait;		// tell if we need to flush buffers
+	/* Check if we have to cancel the copy */
+	if (get_current_mode() == CANCEL)
+	  return -2;
+	/* Read */
 	len = read (in_fd, buffer, buffsize);
 	if (-1 == len)
 	  return -1;
@@ -218,6 +222,7 @@ shake_reg (struct accused *a, struct law *l)
   assert (S_ISREG (a->mode)), assert (a->guilty);
   const uint GAP = MAGICLEAP * 4;
   char *msg;
+  int res;
   if (l->pretend)
     return 0;
   capture (a, l);
@@ -225,19 +230,34 @@ shake_reg (struct accused *a, struct law *l)
       asprintf (&msg,
 		"%s: unrecoverable internal error ! file has been saved at %s",
 		a->name, l->tmpname))
-    msg = NULL;
-  /* Error handling */
-  if (msg && -1 == fcopy (a->fd, l->tmpfd, MAGICLEAP))
     {
       int errsv = errno;
       unlink (l->tmpname);	// could work
-      if (msg)
-	error (1, errsv, "%s: temporary copy failed", a->name);
-      else
-	error (1, errsv, "%s: failed to initialise failure manager", a->name);
+      error (1, errsv, "%s: failed to initialise failure manager",
+	     a->name);
     }
-  /* Disable most signals (except critical ones) */
-  restrict_signals (msg);
+
+  /* In this mode we can stop without loosing data */
+  enter_backup_mode (a->name);
+  /* Do the backup */
+  res = fcopy (a->fd, l->tmpfd, MAGICLEAP);
+  if (-1 == res)
+    {
+      // Backup failed
+      int errsv = errno;
+      unlink (l->tmpname);	// could work
+      error (1, errsv, "%s: temporary copy failed", a->name);
+    }
+  else if (-2 == res)
+    {
+      // Backup cancelled
+      assert (get_current_mode() == CANCEL);
+      enter_normal_mode();
+      errno = 0;
+      return -1;
+    }
+  /* Disable most signals (except critical ones, see signals.h) */
+  enter_critical_mode (msg);
   /*  Ask the FS to put the file at a new place, without losing metadatas
    * nor hard links. Works on ReiserFS but should be tested on other filesystems
    */
@@ -250,8 +270,8 @@ shake_reg (struct accused *a, struct law *l)
     error (1, errno, "%s: restore failed ! file have been saved at %s",
 	   a->name, l->tmpname);
   /* Restore most signals */
-  restore_signals ();
   release (a, l);
+  enter_normal_mode ();
   free (msg);
   return 0;
 }

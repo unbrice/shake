@@ -24,7 +24,6 @@
 #include <dirent.h>		// scandir()
 #include <sys/stat.h>		// stat(), umask()
 #include <unistd.h>		// stat()
-#include <sys/file.h>		// flock()
 #include <stdio.h>		// printf(), tmpfile()
 #include <error.h>		// error()
 #include <limits.h>		// SSIZE_MAX
@@ -91,7 +90,7 @@ investigate (char *name, struct law *l)
       goto freeall;
     }
   /* Put the lock */
-  if (l->locks && -1 == flock (a->fd, LOCK_EX | LOCK_NB))
+  if (l->locks && -1 == lock_file (a->fd))
     {
       error (0, errno, "%s: failed to acquire a lock", a->name);
       goto freeall;
@@ -148,8 +147,8 @@ close_case (struct accused *a, struct law *l)
   a->name = NULL;
   if (a->fd >= 0)
     {
-      if (l->locks && -1 == flock (a->fd, LOCK_UN))
-	error (1, errno, "%s: failed to release lock", a->name);
+      if (l->locks && -1 == unlock_file (a->fd))
+	error (1, errno, "%s: failed to unlock", a->name);
       close (a->fd);
     }
   a->fd = -1;
@@ -188,8 +187,6 @@ judge_reg (struct accused *a, struct law *l)
   assert (S_ISREG (a->mode));
   double tol = tol_reg (a, l);
   if (MAX_TOL == tol)
-    return false;
-  if (l->workaround && strstr (a->name, ".so"))	// TODO: investigate on ld lock
     return false;
   if (a->age < l->new * tol)
     return false;

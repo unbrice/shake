@@ -13,6 +13,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include "linux.h"
+
 #include <stdlib.h>
 #include <stdio.h>		// snprintf
 #include <limits.h>		// CHAR_BIT
@@ -20,17 +22,39 @@
 #include <assert.h>		// assert
 #include <errno.h>		// errno
 #include <error.h>		// error()
+#include <fcntl.h>		// fcntl()
+#include <unistd.h>		// fcntl()
 #include <attr/attributes.h>	// attr_setf,
 #include <sys/ioctl.h>		// ioctl()
 #include <linux/fs.h>		// FIBMAP, FIGETBSZ
 #include <arpa/inet.h>		// htonl, ntohl
-#include "linux.h"
+
+/* Get a write lock on the file.
+ * We get a write lock even when a read lock would be enough to detect
+ * earlier access contention.
+ */
+int
+lock_file (int fd)
+{
+  if (fcntl (fd, F_SETSIG, SIGLOCKEXPIRED) != 0)
+    return -1;
+  /* We get writelock  */
+  return fcntl (fd, F_SETLEASE, F_WRLCK);
+}
+
+/* Release our locks on the file
+ */
+int
+unlock_file (int fd)
+{
+  return fcntl (fd, F_SETLEASE, F_UNLCK);
+}
+
 
 /*  could make an estimation of the required size, but should'nt because attr_setf
  * set fixed size attributes, so it would cause problems when moving the disk
  */
 #define DATE_SIZE sizeof(uint32_t)	// TODO: change this value before 2107
-
 
 /* Set the shake_ptime field and ctime of the file to the actual date.
  */

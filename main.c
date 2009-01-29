@@ -131,7 +131,6 @@ parseopts (int argc, char **restrict argv, struct law *restrict l)
     l->verbosity = 0;
     l->locks = true;
     l->kingdom = 0;		// --many-fs disabled
-    l->workaround = true;
     l->xattr = 1;
   }
   /* Like the manpage said .. */
@@ -156,7 +155,6 @@ parseopts (int argc, char **restrict argv, struct law *restrict l)
 	{"small-tolerance", required_argument, NULL, 't'},
 	{"big-tolerance", required_argument, NULL, 'T'},
 	{"version", no_argument, NULL, 'V'},
-	{"no-workaround", no_argument, NULL, 'W'},
 	{"no-xattr", no_argument, NULL, 'X'},
 	{0, 0, 0, 0}
       };
@@ -223,9 +221,6 @@ parseopts (int argc, char **restrict argv, struct law *restrict l)
 	case 'V':
 	  show_version ();
 	  exit (0);
-	case 'W':
-	  l->workaround = false;
-	  break;
 	case 'X':
 	  l->xattr = 0;
 	  break;

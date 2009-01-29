@@ -15,15 +15,21 @@
  */
 #ifndef LINUX_H
 # define LINUX_H
-#define _GNU_SOURCE
-#include <getopt.h>		// getopt_long()
-#include <alloca.h>		// alloca()
-#include <stdio.h>		// getline
-#include <sys/time.h>		// struct timeval
-#include "judge.h"
+# define _GNU_SOURCE
+# include <getopt.h>		// getopt_long()
+# include <alloca.h>		// alloca()
+# include <stdio.h>		// getline
+# include <sys/time.h>		// struct timeval
+# include "judge.h"
 
+# define SIGLOCKEXPIRED 16
+
+int lock_file(int fd);
+int unlock_file(int fd);
+
 int futimes (int fd, const struct timeval tv[2]);
 int set_ptime (int fd);
 time_t get_ptime (int fd);
 int get_testimony (struct accused *a, struct law *l);
+
 #endif

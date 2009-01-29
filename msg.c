@@ -24,8 +24,8 @@ show_help (void)
   puts ("\
 Usage: shake [OPTION]... [FILE|DIRECTORY]...\n\
 Rewrite fragmented or misplaced files, maybe improving performance.\n\
-Read from standard input if there is no files in argv.\n\
-You have to mount your partition with user_xattr option.\n\
+Reads file list from standard input if there is no files in the arguments.\n\
+You have to mount your partition with the user_xattr option.\n\
 \n\
   -c, --max-crumbc	max number of crumbs\n\
   -C, --max-fragc	max number of fragments\n\
@@ -43,7 +43,6 @@ You have to mount your partition with user_xattr option.\n\
   -T, --big-tolerance	multiply crumbratio and divide maxfnumber of big files\n\
   -v, --verbose		increase the verbosity level\n\
   -V, --version		show version number and copyright\n\
-  -W, --no-workaround   disable glibc 2.4 workaround\n\
   -X, --no-xattr	disable usage of xattr\n\
 Report bugs to <brice.arnould+shake@gmail.com> or at\n\
 http://savannah.nongnu.org/projects/shake\

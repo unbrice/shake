@@ -17,23 +17,56 @@
 # define SIGNALS_H
 
 
-/*  Set signals.c/handle_signals() as the default handler, and tempfile
- * as the current temporary file
+enum mode {
+  /* In this mode, signals are handled with the default handler,  appart
+   * that the temporary file will be deleted.
+   * You can enter this mode from any other.
+   */
+  NORMAL = 42,
+  /*  This mode is similar to the NORMAL one, except we enter the
+   * CANCEL mode instead of aborting when we receive
+   * You can enter this mode from any other.
+   */
+  BACKUP,
+  /* In this mode :
+   *  signals raised by internal errors, such as SIGSEV, stop the program
+   * and show informations about the error (char *msg)
+   *  signals that suspend the activity works as usual
+   *  others are suspended
+   * It is intended to be used when current_tempfile is the only copy
+   * of a file.
+   * You can enter in this mode from NORMAL.
+   */
+  REWRITE,
+  /* Shake enter this mode when a BACKUP is being cancelled.
+   */
+  CANCEL
+  // TODO : add INVESTIGATE
+};
+
+/*  Set signals.c/handle_signals() as the default handler, tempfile
+ * as the current temporary file, then call enter_normal_mode
  */
 void install_sighandler (const char *tempfile);
 
-/* In this mode :
- *  signals raised by internal errors, such as SIGSEV, stop the program
- * and show informations about the error (char *msg)
- *  signals that suspend the activity works as usual
- *  others are suspended
- * It is intended to be used when current_tempfile is the only copy of a file
+/* Enter BACKUP mode (see above), filename is the file being backup.
  */
-void restrict_signals (const char *msg);
+void enter_backup_mode(const char* filename);
 
-/*  In this mode, signals are handled with the default handler, appart
- * that the temporary file will be deleted.
+/* Enter CRITICAL mode (see above), msg is the message to display in
+   case of failure.
  */
-void restore_signals (void);
+void enter_critical_mode (const char *msg);
+
+/* Enter NORMAL mode (see above).
+ */
+void enter_normal_mode (void);
+
+
+/* Return the current mode.
+ */
+enum mode
+get_current_mode (void);
+
 
 #endif
