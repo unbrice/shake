@@ -1,3 +1,7 @@
+2009-01-31 :  shake 0.99 ; urgency=high
+	* Fixed a security issue : printf of a user-controlled buffer
+	* Added the support for Linux leases
+	* Updated the documentation
 2008-02-03 :  shake 0.31 ; urgency=low
 	* Fixed build when CFLAGS are defined in environment, thanks to wain
 2008-01-23 :  shake 0.30 ; urgency=high
