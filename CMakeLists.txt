@@ -80,7 +80,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
 ## SANITY CHECK ##
 IF (NOT HAVE_LIBATTR)
-  message (SEND_ERROR "You need libattr headers for Shake to build. They might be in a package named libattr1-dev.")
+  message (SEND_ERROR "You need libattr headers for Shake to build. They might be in a package named libattr1-dev or libattr-devel.")
 ENDIF()
 
 #### Installation ####
