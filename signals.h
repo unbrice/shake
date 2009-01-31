@@ -17,7 +17,8 @@
 # define SIGNALS_H
 
 
-enum mode {
+enum mode
+{
   /* In this mode, signals are handled with the default handler,  appart
    * that the temporary file will be deleted.
    * You can enter this mode from any other.
@@ -41,7 +42,7 @@ enum mode {
   /* Shake enter this mode when a BACKUP is being cancelled.
    */
   CANCEL
-  // TODO : add INVESTIGATE
+    // TODO : add INVESTIGATE
 };
 
 /*  Set signals.c/handle_signals() as the default handler, tempfile
@@ -51,7 +52,7 @@ void install_sighandler (const char *tempfile);
 
 /* Enter BACKUP mode (see above), filename is the file being backup.
  */
-void enter_backup_mode(const char* filename);
+void enter_backup_mode (const char *filename);
 
 /* Enter CRITICAL mode (see above), msg is the message to display in
    case of failure.
@@ -65,8 +66,7 @@ void enter_normal_mode (void);
 
 /* Return the current mode.
  */
-enum mode
-get_current_mode (void);
+enum mode get_current_mode (void);
 
 
 #endif

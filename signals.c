@@ -19,7 +19,7 @@
  */
 
 #include "signals.h"
-#include "linux.h"              // 
+#include "linux.h"		//
 #include <assert.h>		// assert()
 #include <errno.h>		// errno
 #include <error.h>		// error()
@@ -31,8 +31,8 @@
  */
 static const char *current_msg = NULL;
 static const char *current_tempfile = NULL;
-static const char *current_file = NULL; // The file being shaked
-static enum mode current_mode; // Tell in which mode we are, cf signals.h
+static const char *current_file = NULL;	// The file being shaked
+static enum mode current_mode;	// Tell in which mode we are, cf signals.h
 
 /*  If we're in REWRITE mode, display current_msg and exit,
  * if we're in BACKUP mode, cancel the backup by going in cancel mode
@@ -44,12 +44,10 @@ handle_signals (int sig)
   if (current_mode == REWRITE && sig == SIGLOCKEXPIRED)
     {
       error (0, 0,
-	     "%s: Another program is trying to access the file; "\
-	     "if shaking takes more than lease-break-time seconds "\
-	     "shake will be killed; if this happens a backup will be "\
-	     "available in '%s'",
-	     current_file,
-	     current_tempfile);
+	     "%s: Another program is trying to access the file; "
+	     "if shaking takes more than lease-break-time seconds "
+	     "shake will be killed; if this happens a backup will be "
+	     "available in '%s'", current_file, current_tempfile);
     }
   else if (current_mode == REWRITE)
     {
@@ -61,8 +59,7 @@ handle_signals (int sig)
   else if (current_mode == BACKUP && sig == SIGLOCKEXPIRED)
     {
       assert (current_file);
-      error (0, 0, "Failed to shake: %s: concurent accesses",
-	     current_file);
+      error (0, 0, "Failed to shake: %s: concurent accesses", current_file);
       current_mode = CANCEL;
     }
   else
@@ -70,7 +67,7 @@ handle_signals (int sig)
       assert (current_tempfile);
       unlink (current_tempfile);
       raise (sig);		// Call the default handler, because
-				// sa_flags == SA_RESETHAND
+      // sa_flags == SA_RESETHAND
     }
 }
 
@@ -81,8 +78,8 @@ install_sighandler (const char *tempfile)
   struct sigaction sa;
   current_tempfile = tempfile;
   sigemptyset (&sa.sa_mask);
-  sa.sa_flags = (int) SA_RESETHAND;// All signals after the firsts will be
-				   // handled by system's default handlers
+  sa.sa_flags = (int) SA_RESETHAND;	// All signals after the firsts will be
+  // handled by system's default handlers
   sa.sa_handler = handle_signals;
   /* Set our handler as the one that will handle critical situations */
   sigaction (SIGFPE, &sa, NULL);
@@ -101,7 +98,7 @@ install_sighandler (const char *tempfile)
   sigaction (SIGXCPU, &sa, NULL);
   sigaction (SIGXFSZ, &sa, NULL);
   /* Set the NORMAL mode */
-  enter_normal_mode();
+  enter_normal_mode ();
 }
 
 void
@@ -116,7 +113,7 @@ enter_normal_mode (void)
 }
 
 void
-enter_backup_mode(const char* filename)
+enter_backup_mode (const char *filename)
 {
   assert (current_mode == NORMAL);
   current_mode = BACKUP;
@@ -127,7 +124,7 @@ enter_backup_mode(const char* filename)
 void
 enter_critical_mode (const char *msg)
 {
-  assert (msg), assert(current_mode == BACKUP);
+  assert (msg), assert (current_mode == BACKUP);
   sigset_t sset;
   sigfillset (&sset);
   current_msg = msg;
@@ -145,7 +142,7 @@ enter_critical_mode (const char *msg)
 }
 
 enum mode
-get_current_mode(void)
+get_current_mode (void)
 {
   return current_mode;
 }

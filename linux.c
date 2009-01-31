@@ -99,7 +99,7 @@ get_testimony (struct accused *a, struct law *l)
   int crumbsize;
   /* Framents logs */
   llint *sizelog = NULL, *poslog = NULL;	// Framgents sizes and positions
-  unsigned int logs_pos = 0;		// Position in logs
+  unsigned int logs_pos = 0;	// Position in logs
   /* Convert sizes in number of physical blocks */
   {
     if (-1 == ioctl (a->fd, FIGETBSZ, &physbsize))

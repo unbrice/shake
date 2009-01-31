@@ -45,7 +45,7 @@ int
 fcopy (int in_fd, int out_fd, size_t gap)
 {
   assert (in_fd > -1), assert (out_fd > -1);
-  size_t buffsize = 65535; // Must fit in a integer
+  size_t buffsize = 65535;	// Must fit in a integer
   int *buffer;
   /* Prepare files */
   if (-1 == lseek (in_fd, (off_t) 0, SEEK_SET)
@@ -102,7 +102,7 @@ fcopy (int in_fd, int out_fd, size_t gap)
 	bool eof;		// tell if we are at end of file
 	bool cant_wait;		// tell if we need to flush buffers
 	/* Check if we have to cancel the copy */
-	if (get_current_mode() == CANCEL)
+	if (get_current_mode () == CANCEL)
 	  return -2;
 	/* Read */
 	len = (int) read (in_fd, buffer, buffsize);
@@ -233,8 +233,7 @@ shake_reg (struct accused *a, struct law *l)
     {
       int errsv = errno;
       unlink (l->tmpname);	// could work
-      error (1, errsv, "%s: failed to initialise failure manager",
-	     a->name);
+      error (1, errsv, "%s: failed to initialise failure manager", a->name);
     }
 
   /* In this mode we can stop without loosing data */
@@ -251,8 +250,8 @@ shake_reg (struct accused *a, struct law *l)
   else if (-2 == res)
     {
       // Backup cancelled
-      assert (get_current_mode() == CANCEL);
-      enter_normal_mode();
+      assert (get_current_mode () == CANCEL);
+      enter_normal_mode ();
       errno = 0;
       return -1;
     }

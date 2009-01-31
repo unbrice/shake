@@ -38,7 +38,7 @@ typedef long long int llint;
 
 struct law
 {
-  uint maxfragc;			// max number of fragments
+  uint maxfragc;		// max number of fragments
   double crumbratio;		// ratio of the file, a smaller fragment is a crumb
   uint maxcrumbc;		// Allowed number of fragment smaller than crumbratio
   off_t smallsize;		// the size under which a file is considered small

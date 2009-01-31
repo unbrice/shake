@@ -24,8 +24,8 @@
 
 # define SIGLOCKEXPIRED 16
 
-int lock_file(int fd);
-int unlock_file(int fd);
+int lock_file (int fd);
+int unlock_file (int fd);
 
 int futimes (int fd, const struct timeval tv[2]);
 int set_ptime (int fd);
