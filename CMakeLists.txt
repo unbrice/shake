@@ -27,7 +27,7 @@ MACRO (add_help2man_manpage file command)
 ENDMACRO ()
 
 #### PROJECT CONFIG ####
-project (Shake)
+project (Shake C)
 set (CPACK_VERSION_MAJOR "0")
 set (CPACK_VERSION_MINOR "32")
 set (CPACK_PACKAGE_CONTACT "Brice Arnould <brice.arnould+shake@gmail.com>")
