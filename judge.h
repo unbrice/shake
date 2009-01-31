@@ -81,8 +81,24 @@ struct accused
   bool guilty;
 };
 
+/*  This function return a struct wich describe properties
+ * of the file who's name is given.
+ */
 struct accused *investigate (char *name, struct law *l);
+
+/*  This function free structs allocated by
+ * investigate().
+ */
 void close_case (struct accused *a, struct law *l);
+
+
+
+/*  This function call judge on stdin content
+ */
 int judge_stdin (struct accused *a, struct law *l);
+
+/* Return true if the file is fragmented, else false.
+ */
 int judge (struct accused *a, struct law *l);
+
 #endif /* JUDGE_H */

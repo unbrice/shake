@@ -19,7 +19,7 @@
  */
 
 #include "signals.h"
-#include "linux.h"		//
+#include "linux.h"		// SIGLOCKEXPIRED
 #include <assert.h>		// assert()
 #include <errno.h>		// errno
 #include <error.h>		// error()

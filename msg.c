@@ -72,7 +72,6 @@ show_header (struct law *l)
     putchar ('\n');
 }
 
-/* Show statistics about an accused */
 void
 show_reg (struct accused *a, struct law *l)
 {

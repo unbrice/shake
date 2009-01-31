@@ -24,12 +24,35 @@
 
 # define SIGLOCKEXPIRED 16
 
+/* Get a write lock on the file.
+ * We get a write lock even when a read lock would be enough to detect
+ * earlier access contention.
+ */
 int lock_file (int fd);
+
+/* Release our locks on the file
+ */
 int unlock_file (int fd);
 
+
+
+/* Declares the glibc function
+ */
 int futimes (int fd, const struct timeval tv[2]);
+
+/* Set the shake_ptime field and ctime of the file to the actual date.
+ */
 int set_ptime (int fd);
+
+/* Get the ptime of the file, -1 if that failed
+ */
 time_t get_ptime (int fd);
+
+/*  This function is mainly a wrapper around ioctl()s.
+ *  It updates a->{blocks, crumbc, fragc, start and end}
+ * with just a bit of undocumented black magic.
+ *  It can only be called after investigate().
+ */
 int get_testimony (struct accused *a, struct law *l);
 
 #endif

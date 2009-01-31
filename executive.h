@@ -17,9 +17,41 @@
 # define FCOPY_H
 # include "judge.h"
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
+
+/*  Copy the content of file referenced by in_fd to out_fd
+ *  Make file sparse if there's more than gap consecutive '\0',
+ * and if gap != 0
+ *  Return -1 and set errno if failed, -2 if canceled, anything else
+ *  if succeded
+ *  This part is crucial as it is the one which do the job and
+ * which can break file, it have been carfully read and tested
+ * so it would be dangerous to rewrite it... however it's
+ * big and ugly -_-.
+ */
 int fcopy (int in_fd, int out_fd, size_t gap);
-char **list_dir (char *name, int sort);
-char **list_stdin (void);
+
+/*  Make a backup of a file, truncate original to 0, then copy
+ * the backup over it.
+ */
 int shake_reg (struct accused *a, struct law *l);
+
+
+/* Return an array containing file names in the named directory,
+ * excepted "." and "..".
+ * Return NULL in case of error.
+ * If sort is true, file names are sorted by atime.
+ * LIMIT : INT_MAX files
+ */
+char **list_dir (char *name, int sort);
+
+/* Return an array containing file names given in stdin
+ * excepted "." and "..".
+ * File names are sorted by atime.
+ * LIMIT : INT_MAX files
+ */
+char **list_stdin (void);
+
+/* Free arrays allocated by list_dir()
+ */
 void close_list (char **flist);
 #endif

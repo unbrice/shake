@@ -20,6 +20,8 @@
 void show_help (void);
 void show_version (void);
 void show_header (struct law *l);
+/* Show statistics about an accused
+ */
 void show_reg (struct accused *a, struct law *l);
 
 #endif /* MSG_H */

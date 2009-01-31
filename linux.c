@@ -29,10 +29,6 @@
 #include <linux/fs.h>		// FIBMAP, FIGETBSZ
 #include <arpa/inet.h>		// htonl, ntohl
 
-/* Get a write lock on the file.
- * We get a write lock even when a read lock would be enough to detect
- * earlier access contention.
- */
 int
 lock_file (int fd)
 {
@@ -42,8 +38,6 @@ lock_file (int fd)
   return fcntl (fd, F_SETLEASE, F_WRLCK);
 }
 
-/* Release our locks on the file
- */
 int
 unlock_file (int fd)
 {
@@ -56,8 +50,6 @@ unlock_file (int fd)
  */
 #define DATE_SIZE sizeof(uint32_t)	// TODO: change this value before 2107
 
-/* Set the shake_ptime field and ctime of the file to the actual date.
- */
 int
 set_ptime (int fd)
 {
@@ -67,8 +59,6 @@ set_ptime (int fd)
 		    ATTR_DONTFOLLOW);
 }
 
-/* Get the ptime of the file, -1 if that failed
- */
 time_t
 get_ptime (int fd)
 {
@@ -85,11 +75,6 @@ get_ptime (int fd)
 }
 
 
-/*  This function is mainly a wrapper around ioctl()s.
- *  It updates a->{blocks, crumbc, fragc, start and end}
- * with just a bit of undocumented black magic.
- *  It can only be called after investigate().
- */
 int
 get_testimony (struct accused *a, struct law *l)
 {

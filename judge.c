@@ -33,10 +33,6 @@
 #include "msg.h"
 
 
-
-/*  This function return a struct wich describe properties
- * of the file who's name is given.
- */
 struct accused *
 investigate (char *name, struct law *l)
 {
@@ -135,9 +131,6 @@ freeall:
   return NULL;
 }
 
-/*  This function free structs allocated by
- * investigate().
- */
 void
 close_case (struct accused *a, struct law *l)
 {
@@ -178,7 +171,7 @@ tol_reg (struct accused *a, struct law *l)
   return tol;
 }
 
-/* Return true if the file is guilty, else false.
+/* Return true if the file is fragmented, else false.
  */
 static bool
 judge_reg (struct accused *a, struct law *l)
@@ -202,6 +195,8 @@ judge_reg (struct accused *a, struct law *l)
   return false;
 }
 
+/*  This function call judge on the list content
+ */
 static int
 judge_list (char *restrict * flist, struct law *restrict l)
 {
@@ -268,6 +263,8 @@ judge_list (char *restrict * flist, struct law *restrict l)
   return res;
 }
 
+/*  This function call judge on the directory content
+ */
 static int
 judge_dir (struct accused *a, struct law *l)
 {
