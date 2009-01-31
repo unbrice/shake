@@ -29,7 +29,7 @@ ENDMACRO ()
 #### PROJECT CONFIG ####
 project (Shake)
 set (CPACK_VERSION_MAJOR "0")
-set (CPACK_VERSION_MINOR "31")
+set (CPACK_VERSION_MINOR "32")
 set (CPACK_PACKAGE_CONTACT "Brice Arnould <brice.arnould+shake@gmail.com>")
 
 set (VERSION "${CPACK_VERSION_MAJOR}.${CPACK_VERSION_MINOR}")
@@ -56,7 +56,7 @@ IF (CMAKE_SYSTEM_NAME MATCHES Linux)
   add_definitions ("-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64")  # For 64 bits files
   add_definitions ("-D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200112L") # For posix_fallocate
   list (APPEND CMAKE_REQUIRED_LIBRARIES attr)
-  target_link_libraries (shake attr.a)
+  target_link_libraries (shake attr)
   target_link_libraries (unattr attr)
 ELSE ()
   message ("For now, shake has only been tested under GNU/Linux. I would be really interested by your experience under other OS, if you have time to write me at <brice.arnould+shake@gmail.com>")
