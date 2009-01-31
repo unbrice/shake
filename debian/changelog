@@ -1,6 +1,17 @@
+shake (0.99) intrepid; urgency=high
+
+  * Upstream update.
+  * SECURITY UPDATE: Printf of a user-controled string.
+  * References
+  *  commit 8cc0d32580f99bef2003fa387994859c7b63bd0e
+
+ -- Brice Arnould <brice.arnould+shake@gmail.com>  Sat, 31 Jan 2009 12:36:24 -0800
+
 shake (0.31) unstable; urgency=low
   * Upstream update.
+
  -- Brice Arnould <brice.arnould+shake@gmail.com>  Sun, 2 Feb 2008 16:01:08 +0100
+
 shake (0.30) unstable; urgency=low
   * Initial Release.
  -- Brice Arnould <brice.arnould+shake@gmail.com>  Sun, 30 Dec 2007 11:51:08 +0100
