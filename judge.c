@@ -188,9 +188,9 @@ judge_reg (struct accused *a, struct law *l)
   double tol = tol_reg (a, l);
   if (MAX_TOL == tol)
     return false;
-  if (a->age < l->new * tol)
+  if (a->age < (double) l->new * tol)
     return false;
-  if (a->age > l->old * tol)
+  if (a->age > (double) l->old * tol)
     return true;
   if (a->fragc > l->maxfragc * tol)
     return true;
@@ -244,14 +244,14 @@ judge_list (char *restrict * flist, struct law *restrict l)
 	y->ideal = 0;
 	if (y->start)
 	  {
-	    if (x && x->end && abs (x->atime - y->atime) < MAGICTIME)
+	    if (x && x->end && labs (x->atime - y->atime) < MAGICTIME)
 	      {
-		if (z && z->start && abs (z->atime - y->atime) < MAGICTIME)
+		if (z && z->start && labs (z->atime - y->atime) < MAGICTIME)
 		  y->ideal = (x->end + z->start) / 2;
 		else
 		  y->ideal = (x->end + MAGICLEAP);
 	      }
-	    else if (z && z->start && abs (z->atime - y->atime) < MAGICTIME)
+	    else if (z && z->start && labs (z->atime - y->atime) < MAGICTIME)
 	      y->ideal = (z->start - z->blocks - MAGICLEAP);
 	  }
       }

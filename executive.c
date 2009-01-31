@@ -45,7 +45,7 @@ int
 fcopy (int in_fd, int out_fd, size_t gap)
 {
   assert (in_fd > -1), assert (out_fd > -1);
-  size_t buffsize = 65535;
+  size_t buffsize = 65535; // Must fit in a integer
   int *buffer;
   /* Prepare files */
   if (-1 == lseek (in_fd, (off_t) 0, SEEK_SET)
@@ -105,7 +105,7 @@ fcopy (int in_fd, int out_fd, size_t gap)
 	if (get_current_mode() == CANCEL)
 	  return -2;
 	/* Read */
-	len = read (in_fd, buffer, buffsize);
+	len = (int) read (in_fd, buffer, buffsize);
 	if (-1 == len)
 	  return -1;
 	eof = (len != buffsize);
@@ -300,7 +300,8 @@ atimesort (const void *a, const void *b)
 #endif
       return 0;
     }
-  return (bstat.st_atime) - (astat.st_atime);	// (b - a) is more efficient
+  // Using modulo to prevent int overflow
+  return (int) ((bstat.st_atime - astat.st_atime) % 2);
 }
 
 /* Return an array containing file names in the named directory,

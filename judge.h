@@ -38,7 +38,7 @@ typedef long long int llint;
 
 struct law
 {
-  int maxfragc;			// max number of fragments
+  uint maxfragc;			// max number of fragments
   double crumbratio;		// ratio of the file, a smaller fragment is a crumb
   uint maxcrumbc;		// Allowed number of fragment smaller than crumbratio
   off_t smallsize;		// the size under which a file is considered small
@@ -66,7 +66,7 @@ struct accused
   char *name;
   int fd;
   off_t size;
-  uint blocks;			// Number of blocks
+  long blocks;			// Number of blocks
   uint fragc;			// Number of fragments
   uint crumbc;			// Number of fragments smaller than crumbratio
   llint start;			// The position of the first block

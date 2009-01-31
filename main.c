@@ -75,15 +75,16 @@
 
 
 /*  Read the string at str. If it is not a number, or if the number is
- * < min, exit with an error. Else return the number as an integer.
+ * < min, exit with an error. Else return the number as a unsigned
+ * integer.
  */
-static int
+static uint
 argtoi (char *str, int min, char *name)
 {
   char *endptr;
-  int res;
+  uint res;
   assert (str && name);
-  res = (int) strtol (str, &endptr, 10);
+  res = (uint) strtol (str, &endptr, 10);
   if (str == endptr || res < min)
     error (1, 0, "%s must be >= %i", name, min);
   return res;
@@ -259,10 +260,11 @@ main (int argc, char **argv)
   int tmpfd;
   struct accused *a;
   struct law l;
-  uint optind;
+  int optind;
 
   /* Read the law */
   optind = parseopts (argc, argv, &l);
+  assert (optind >= 0);
 
   /* Get a temporary file  */
   {
@@ -280,7 +282,7 @@ main (int argc, char **argv)
   if (optind == argc)
     judge_stdin (NULL, &l);
   else
-    for (uint i = optind; i != argc; i++)
+    for (int i = optind; i != argc; i++)
       {
 	int jugement;
 	a = investigate (argv[i], &l);

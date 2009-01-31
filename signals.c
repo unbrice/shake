@@ -81,8 +81,8 @@ install_sighandler (const char *tempfile)
   struct sigaction sa;
   current_tempfile = tempfile;
   sigemptyset (&sa.sa_mask);
-  sa.sa_flags = SA_RESETHAND;	// All signals after the firsts will be
-				// handled by system's default handlers
+  sa.sa_flags = (int) SA_RESETHAND;// All signals after the firsts will be
+				   // handled by system's default handlers
   sa.sa_handler = handle_signals;
   /* Set our handler as the one that will handle critical situations */
   sigaction (SIGFPE, &sa, NULL);

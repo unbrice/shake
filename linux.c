@@ -95,11 +95,11 @@ get_testimony (struct accused *a, struct law *l)
 {
   const size_t BUFFSTEP = 32;
   /* General stats */
-  int physbsize;
+  uint physbsize;
   int crumbsize;
   /* Framents logs */
   llint *sizelog = NULL, *poslog = NULL;	// Framgents sizes and positions
-  int logs_pos = 0;		// Position in logs
+  unsigned int logs_pos = 0;		// Position in logs
   /* Convert sizes in number of physical blocks */
   {
     if (-1 == ioctl (a->fd, FIGETBSZ, &physbsize))
@@ -108,7 +108,7 @@ get_testimony (struct accused *a, struct law *l)
 	return -1;
       }
     a->blocks = (a->size + physbsize - 1) / physbsize;
-    crumbsize = a->size * l->crumbratio;
+    crumbsize = (int) ((double) a->size * l->crumbratio);
   }
   /* Create the log of fragment, terminated by <-1,-1> */
   if (l->verbosity >= 3)

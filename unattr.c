@@ -116,8 +116,8 @@ main (int argc, char **argv)
   char **attr = NULL;
   /* Parse opts */
   {
-    const int BUFSTEP = 32;
-    int pos = 0;
+    const uint BUFSTEP = 32;
+    uint pos = 0;
     while (1)
       {
 	int c;
