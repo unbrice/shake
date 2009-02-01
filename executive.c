@@ -17,10 +17,13 @@
 /*  along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /***************************************************************************/
 
-#include "linux.h"
+#define _GNU_SOURCE
 #include "executive.h"
+#include "linux.h"		// is_lock_canceled()
 #include "signals.h"
+#include <alloca.h>
 #include <stdlib.h>
+#include <stdio.h>		// asprintf()
 #include <errno.h>
 #include <assert.h>
 #include <string.h>
@@ -36,7 +39,7 @@
 
 
 int
-fcopy (int in_fd, int out_fd, size_t gap)
+fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
 {
   assert (in_fd > -1), assert (out_fd > -1);
   size_t buffsize = 65535;	// Must fit in a integer
@@ -96,7 +99,7 @@ fcopy (int in_fd, int out_fd, size_t gap)
 	bool eof;		// tell if we are at end of file
 	bool cant_wait;		// tell if we need to flush buffers
 	/* Check if we have to cancel the copy */
-	if (get_current_mode () == CANCEL)
+	if (stop_if_input_unlocked && !is_locked (in_fd))
 	  return -2;
 	/* Read */
 	len = (int) read (in_fd, buffer, buffsize);
@@ -228,7 +231,7 @@ shake_reg (struct accused *a, struct law *l)
     }
 
   /* Do the backup */
-  res = fcopy (a->fd, l->tmpfd, MAGICLEAP);
+  res = fcopy (a->fd, l->tmpfd, MAGICLEAP, true);
   if (-1 == res)
     {
       // Backup failed
@@ -238,13 +241,12 @@ shake_reg (struct accused *a, struct law *l)
     }
   else if (-2 == res
 	   // Try to disable most signals (except critical ones, see signals.h)
-	   || 0 != enter_critical_mode (msg))
+	   || !is_locked (a->fd))
     {
-      // Received a cancel
-      assert (get_current_mode () == CANCEL);
       errno = 0;
       return -1;
     }
+  enter_critical_mode (msg);
   /*  Ask the FS to put the file at a new place, without losing metadatas
    * nor hard links. Works on ReiserFS but should be tested on other filesystems
    */
@@ -253,7 +255,7 @@ shake_reg (struct accused *a, struct law *l)
 	   "%s: failed to ftruncate() ! file have been saved at %s",
 	   a->name, l->tmpname);
   /* Do the reverse copying */
-  if (0 > fcopy (l->tmpfd, a->fd, GAP))
+  if (0 > fcopy (l->tmpfd, a->fd, GAP, false))
     error (1, errno, "%s: restore failed ! file have been saved at %s",
 	   a->name, l->tmpname);
   /* Restore most signals */

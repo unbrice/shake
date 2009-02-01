@@ -22,21 +22,36 @@
 # define _GNU_SOURCE
 # include <getopt.h>		// getopt_long()
 # include <alloca.h>		// alloca()
-# include <stdio.h>		// getline
+# include <stdbool.h>		// bool
+# include <stdio.h>		// getline, asprintf
 # include <sys/time.h>		// struct timeval
 # include "judge.h"
 
-# define SIGLOCKEXPIRED 16
+#define OS_RESERVED_SIGNAL 16
+
+/* Called once, perform OS-specific tasks.
+ */
+int os_specific_setup (const char *tempfile);
+
+
 
 /* Get a write lock on the file.
  * We get a write lock even when a read lock would be enough to detect
  * earlier access contention.
  */
-int lock_file (int fd);
+int readlock_file (int fd, const char *filename);
 
 /* Release our locks on the file
  */
 int unlock_file (int fd);
+
+/* Promote a read lock to a write lock
+ */
+int readlock_to_writelock (int fd);
+
+/* Return true if fd is locked, else false
+ */
+bool is_locked (int fd);
 
 
 

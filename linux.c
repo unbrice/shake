@@ -27,25 +27,134 @@
 #include <errno.h>		// errno
 #include <error.h>		// error()
 #include <fcntl.h>		// fcntl()
+#include <signal.h>		// sigaction()
 #include <unistd.h>		// fcntl()
 #include <attr/attributes.h>	// attr_setf,
 #include <sys/ioctl.h>		// ioctl()
 #include <linux/fs.h>		// FIBMAP, FIGETBSZ
 #include <arpa/inet.h>		// htonl, ntohl
 
-int
-lock_file (int fd)
+/* The following try to hide Linux-specific leases behind an interface
+ * similar to Posix locks.
+ * It does a lot of thread-unsafe black magic.
+ */
+
+#define SIGLOCKEXPIRED OS_RESERVED_SIGNAL
+#define MAX_LOCKED_FDS 8	// Never greater than 3
+
+/* Describe locks
+ */
+struct lock_desc
 {
+  const char *filename;
+  int fd;
+  bool write;
+};
+
+/* All the currently managed locks (thread-unsafe, would require a mutex)
+ */
+struct lock_desc LOCKS[MAX_LOCKED_FDS];
+
+/* The current temporary file
+ */
+const char *TEMPFILE;
+
+/* Return the position of the given fd in LOCKS or a position for the
+ * invalid fd ( -1 ) if there is no such position
+ */
+static int
+locate_lock (int searchedfd)
+{
+  int invalidfd_pos = -1;
+  for (int i = 0; i < MAX_LOCKED_FDS; i++)
+    if (LOCKS[i].fd == searchedfd)
+      return i;
+    else if (LOCKS[i].fd == -1)
+      invalidfd_pos = i;
+  assert (invalidfd_pos >= 0);
+  return invalidfd_pos;
+}
+
+/* Called when a lease is being cancelled
+ */
+static void
+handle_broken_locks (int sig, siginfo_t * info, void *ignored)
+{
+  assert (SIGLOCKEXPIRED == sig), assert (ignored);
+  int fd = info->si_fd;
+  int pos = locate_lock (fd);
+  assert (LOCKS[pos].fd != -1);
+  if (LOCKS[pos].write)
+    error (0, 0,
+	   "%s: Another program is trying to access the file; "
+	   "if shaking takes more than lease-break-time seconds "
+	   "shake will be killed; if this happens a backup will be "
+	   "available in '%s'", LOCKS[pos].filename, TEMPFILE);
+  else
+    {
+      // Cancel this lock
+      LOCKS[pos].fd = -1;
+      error (0, 0, "Failed to shake: %s: concurent accesses",
+	     LOCKS[pos].filename);
+    }
+}
+
+int
+os_specific_setup (const char *tempfile)
+{
+  /* Initialize globals */
+  TEMPFILE = tempfile;
+  for (int i = 0; i < MAX_LOCKED_FDS; i++)
+    LOCKS[i].fd = -1;
+  /* Setup SIGLOCKEXPIRED handler */
+  struct sigaction sa;
+  sa.sa_flags = SA_SIGINFO;
+  sa.sa_sigaction = handle_broken_locks;
+  return sigaction (SIGLOCKEXPIRED, &sa, NULL);
+}
+
+int
+readlock_file (int fd, const char *filename)
+{
+  int pos = locate_lock (fd);
+  assert (LOCKS[pos].fd == -1);
+  // Technically all our locks are write lease
+  if (fcntl (fd, F_SETLEASE, F_WRLCK) != 0)
+    return -1;
   if (fcntl (fd, F_SETSIG, SIGLOCKEXPIRED) != 0)
     return -1;
-  /* We get writelock  */
-  return fcntl (fd, F_SETLEASE, F_WRLCK);
+  /* Register the lock in LOCKS */
+  {
+    LOCKS[pos].filename = filename;
+    LOCKS[pos].fd = fd;
+    LOCKS[pos].write = false;
+  }
+  return 0;
+}
+
+int
+readlock_to_writelock (int fd)
+{
+  int pos = locate_lock (fd);
+  if (pos < 0)
+    return -1;			// The lock has been cancelled
+  LOCKS[pos].write = true;
+  return 0;
 }
 
 int
 unlock_file (int fd)
 {
+  int pos = locate_lock (fd);
+  assert (pos > 0);
+  LOCKS[pos].fd = -1;
   return fcntl (fd, F_SETLEASE, F_UNLCK);
+}
+
+bool
+is_locked (int fd)
+{
+  return LOCKS[locate_lock (fd)].fd != -1;
 }
 
 

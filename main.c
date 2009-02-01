@@ -281,6 +281,7 @@ main (int argc, char **argv)
     l.tmpname = tmpname;
   }
   install_sighandler (tmpname);
+  os_specific_setup (tmpname);
 
   /* Do the stuff (tm) */
   show_header (&l);

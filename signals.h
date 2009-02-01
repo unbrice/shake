@@ -59,19 +59,11 @@ void enter_prepare_mode (const char *filename);
 
 /* Enter CRITICAL mode (see above), msg is the message to display in
  * case of failure.
- * Returns -1 if wasn't in PREPARE mode (for example if we are now in
- * cancel mode)
  */
-int enter_critical_mode (const char *msg);
+void enter_critical_mode (const char *msg);
 
 /* Enter NORMAL mode (see above).
  */
 void enter_normal_mode (void);
-
-
-/* Return the current mode.
- */
-enum mode get_current_mode (void);
-
 
 #endif

@@ -32,7 +32,7 @@
  * so it would be dangerous to rewrite it... however it's
  * big and ugly -_-.
  */
-int fcopy (int in_fd, int out_fd, size_t gap);
+int fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked);
 
 /*  Make a backup of a file, truncate original to 0, then copy
  * the backup over it.

@@ -35,13 +35,12 @@
 #include "judge.h"
 #include "linux.h"
 #include "msg.h"
-#include "signals.h"
 
 
 struct accused *
 investigate (char *name, struct law *l)
 {
-  assert (name), assert (NORMAL == get_current_mode ());
+  assert (name);
   struct accused *a;
   ino_t inode;			// used to check against race between open and stat
   /* malloc() */
@@ -84,11 +83,6 @@ investigate (char *name, struct law *l)
   }
   if (!S_ISREG (a->mode) || 0 == a->size)
     return a;
-  /* Go into PREPARE mode, in this mode we can stop without loosing
-   * data. See signals.h . If an error occurs, we must go back into
-   * NORMAL mode.
-   */
-  enter_prepare_mode (a->name);
   /* open() */
   if (-1 == (a->fd = open (name, O_NOATIME | O_RDWR)))
     {
@@ -96,7 +90,7 @@ investigate (char *name, struct law *l)
       goto freeall;
     }
   /* Put the lock */
-  if (l->locks && -1 == lock_file (a->fd))
+  if (l->locks && -1 == readlock_file (a->fd, a->name))
     {
       error (0, errno, "%s: failed to acquire a lock", a->name);
       goto freeall;
@@ -138,15 +132,12 @@ freeall:
       free (a->name);
       free (a);
     }
-  if (PREPARE == get_current_mode ())
-    enter_normal_mode ();
   return NULL;
 }
 
 void
 close_case (struct accused *a, struct law *l)
 {
-  assert (get_current_mode () == S_ISREG (a->mode) ? PREPARE : NORMAL);
   if (!a)
     return;
   free (a->name);
@@ -157,8 +148,6 @@ close_case (struct accused *a, struct law *l)
 	error (1, errno, "%s: failed to unlock", a->name);
       close (a->fd);
     }
-  if (S_ISREG (a->mode))
-    enter_normal_mode ();
   a->fd = -1;
   a->mode = 0x42;
   if (a->poslog)

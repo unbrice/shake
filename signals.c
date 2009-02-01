@@ -17,8 +17,8 @@
 /*  along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /***************************************************************************/
 
+#include "linux.h"		// OS_RESERVED_SIGNAL
 #include "signals.h"
-#include "linux.h"		// SIGLOCKEXPIRED
 #include <assert.h>		// assert()
 #include <errno.h>		// errno
 #include <error.h>		// error()
@@ -26,7 +26,8 @@
 #include <unistd.h>		// unlink()
 #include <stdbool.h>
 
-/* Those variables would have to be put in a thread-specific storage.
+/* Those variables would have to be put in a thread-specific storage
+ * for ShaKe to be multithread
  */
 static const char *current_msg = NULL;
 static const char *current_tempfile = NULL;
@@ -40,29 +41,13 @@ static enum mode current_mode;	// Tell in which mode we are, cf signals.h
 static void
 handle_signals (int sig)
 {
-  if (current_mode == REWRITE && sig == SIGLOCKEXPIRED)
-    {
-      error (0, 0,
-	     "%s: Another program is trying to access the file; "
-	     "if shaking takes more than lease-break-time seconds "
-	     "shake will be killed; if this happens a backup will be "
-	     "available in '%s'", current_file, current_tempfile);
-    }
-  else if (current_mode == REWRITE)
+  if (current_mode == REWRITE)
     {
       /* Appart from SIGLOCKEXPIRED, we receive only SIGILL, SIGFPE or
        * SIGSEG in this mode (that is, fatal signals) */
       assert (current_msg);
       error (1, 0, "%s", current_msg);
     }
-  else if (current_mode == PREPARE && sig == SIGLOCKEXPIRED)
-    {
-      assert (current_file);
-      error (0, 0, "Failed to shake: %s: concurent accesses", current_file);
-      current_mode = CANCEL;
-    }
-  else if (current_mode == NORMAL && sig == SIGLOCKEXPIRED)
-    ;				// Ignore it, we will no longer change the file anyway
   else
     {
       assert (current_tempfile);
@@ -79,8 +64,9 @@ install_sighandler (const char *tempfile)
   struct sigaction sa;
   current_tempfile = tempfile;
   sigemptyset (&sa.sa_mask);
-  sa.sa_flags = (int) SA_RESETHAND;	// All signals after the firsts will be
-  // handled by system's default handlers
+  // All signals after the firsts will be handled by system's default
+  // handlers
+  sa.sa_flags = (int) SA_RESETHAND;
   sa.sa_handler = handle_signals;
   /* Set our handler as the one that will handle critical situations */
   sigaction (SIGFPE, &sa, NULL);
@@ -88,7 +74,6 @@ install_sighandler (const char *tempfile)
   sigaction (SIGILL, &sa, NULL);
   sigaction (SIGINT, &sa, NULL);
   sigaction (SIGKILL, &sa, NULL);
-  sigaction (SIGLOCKEXPIRED, &sa, NULL);
   sigaction (SIGPIPE, &sa, NULL);
   sigaction (SIGQUIT, &sa, NULL);
   sigaction (SIGSEGV, &sa, NULL);
@@ -122,7 +107,7 @@ enter_prepare_mode (const char *filename)
 }
 
 
-int
+void
 enter_critical_mode (const char *msg)
 {
   assert (msg), assert (current_mode == PREPARE);
@@ -133,20 +118,11 @@ enter_critical_mode (const char *msg)
   sigdelset (&sset, SIGILL);
   sigdelset (&sset, SIGFPE);
   sigdelset (&sset, SIGSEGV);
-  /* Don't suspend signals raised by lock contention */
-  sigdelset (&sset, SIGLOCKEXPIRED);
+  /* Don't suspend signals reserved for use by the OS-specific layer */
+  sigdelset (&sset, OS_RESERVED_SIGNAL);
   /* Stop and suspend works as usual */
   sigdelset (&sset, SIGTSTP);
   sigdelset (&sset, SIGSTOP);
   sigprocmask (SIG_BLOCK, &sset, NULL);
-  if (current_mode != PREPARE)
-    return -1;
   current_mode = REWRITE;
-  return 0;
-}
-
-enum mode
-get_current_mode (void)
-{
-  return current_mode;
 }
