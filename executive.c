@@ -227,8 +227,6 @@ shake_reg (struct accused *a, struct law *l)
       error (1, errsv, "%s: failed to initialise failure manager", a->name);
     }
 
-  /* In this mode we can stop without loosing data */
-  enter_backup_mode (a->name);
   /* Do the backup */
   res = fcopy (a->fd, l->tmpfd, MAGICLEAP);
   if (-1 == res)
@@ -238,30 +236,28 @@ shake_reg (struct accused *a, struct law *l)
       unlink (l->tmpname);	// could work
       error (1, errsv, "%s: temporary copy failed", a->name);
     }
-  else if (-2 == res)
+  else if (-2 == res
+	   // Try to disable most signals (except critical ones, see signals.h)
+	   || 0 != enter_critical_mode (msg))
     {
-      // Backup cancelled
+      // Received a cancel
       assert (get_current_mode () == CANCEL);
-      enter_normal_mode ();
       errno = 0;
       return -1;
     }
-  /* Disable most signals (except critical ones, see signals.h) */
-  enter_critical_mode (msg);
   /*  Ask the FS to put the file at a new place, without losing metadatas
    * nor hard links. Works on ReiserFS but should be tested on other filesystems
    */
-  if (-1 == ftruncate (a->fd, (off_t) 0))
+  if (0 > ftruncate (a->fd, (off_t) 0))
     error (1, errno,
 	   "%s: failed to ftruncate() ! file have been saved at %s",
 	   a->name, l->tmpname);
   /* Do the reverse copying */
-  if (-1 == fcopy (l->tmpfd, a->fd, GAP))
+  if (0 > fcopy (l->tmpfd, a->fd, GAP))
     error (1, errno, "%s: restore failed ! file have been saved at %s",
 	   a->name, l->tmpname);
   /* Restore most signals */
   release (a, l);
-  enter_normal_mode ();
   free (msg);
   return 0;
 }

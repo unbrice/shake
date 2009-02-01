@@ -34,7 +34,7 @@ static const char *current_file = NULL;	// The file being shaked
 static enum mode current_mode;	// Tell in which mode we are, cf signals.h
 
 /*  If we're in REWRITE mode, display current_msg and exit,
- * if we're in BACKUP mode, cancel the backup by going in cancel mode
+ * if we're in PREPARE mode, cancel the backup by going in cancel mode
  * else unlink the current_tempfile and call he default handler
  */
 static void
@@ -55,12 +55,14 @@ handle_signals (int sig)
       assert (current_msg);
       error (1, 0, "%s", current_msg);
     }
-  else if (current_mode == BACKUP && sig == SIGLOCKEXPIRED)
+  else if (current_mode == PREPARE && sig == SIGLOCKEXPIRED)
     {
       assert (current_file);
       error (0, 0, "Failed to shake: %s: concurent accesses", current_file);
       current_mode = CANCEL;
     }
+  else if (current_mode == NORMAL && sig == SIGLOCKEXPIRED)
+    ;				// Ignore it, we will no longer change the file anyway
   else
     {
       assert (current_tempfile);
@@ -112,22 +114,21 @@ enter_normal_mode (void)
 }
 
 void
-enter_backup_mode (const char *filename)
+enter_prepare_mode (const char *filename)
 {
   assert (current_mode == NORMAL);
-  current_mode = BACKUP;
+  current_mode = PREPARE;
   current_file = filename;
 }
 
 
-void
+int
 enter_critical_mode (const char *msg)
 {
-  assert (msg), assert (current_mode == BACKUP);
+  assert (msg), assert (current_mode == PREPARE);
   sigset_t sset;
   sigfillset (&sset);
   current_msg = msg;
-  current_mode = REWRITE;
   /* Don't suspend signals raised by internal errors */
   sigdelset (&sset, SIGILL);
   sigdelset (&sset, SIGFPE);
@@ -138,6 +139,10 @@ enter_critical_mode (const char *msg)
   sigdelset (&sset, SIGTSTP);
   sigdelset (&sset, SIGSTOP);
   sigprocmask (SIG_BLOCK, &sset, NULL);
+  if (current_mode != PREPARE)
+    return -1;
+  current_mode = REWRITE;
+  return 0;
 }
 
 enum mode

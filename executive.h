@@ -36,6 +36,8 @@ int fcopy (int in_fd, int out_fd, size_t gap);
 
 /*  Make a backup of a file, truncate original to 0, then copy
  * the backup over it.
+ * This can be called only when in PREPARE mode. It internally set the
+ * CRITICAL mode but go back in PREPARE mode before returning.
  */
 int shake_reg (struct accused *a, struct law *l);
 

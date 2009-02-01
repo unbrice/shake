@@ -29,10 +29,10 @@ enum mode
    */
   NORMAL = 42,
   /*  This mode is similar to the NORMAL one, except we enter the
-   * CANCEL mode instead of aborting when we receive
+   * CANCEL mode instead of aborting when we receive SIGLOCKEXPIRED
    * You can enter this mode from any other.
    */
-  BACKUP,
+  PREPARE,
   /* In this mode :
    *  signals raised by internal errors, such as SIGSEV, stop the program
    * and show informations about the error (char *msg)
@@ -43,10 +43,9 @@ enum mode
    * You can enter in this mode from NORMAL.
    */
   REWRITE,
-  /* Shake enter this mode when a BACKUP is being cancelled.
+  /* Shake enter this mode when a PREPARE or an INVESTIGATE is being cancelled.
    */
   CANCEL
-    // TODO : add INVESTIGATE
 };
 
 /*  Set signals.c/handle_signals() as the default handler, tempfile
@@ -54,14 +53,16 @@ enum mode
  */
 void install_sighandler (const char *tempfile);
 
-/* Enter BACKUP mode (see above), filename is the file being backup.
+/* Enter PREPARE mode (see above), filename is the file being prepare.
  */
-void enter_backup_mode (const char *filename);
+void enter_prepare_mode (const char *filename);
 
 /* Enter CRITICAL mode (see above), msg is the message to display in
-   case of failure.
+ * case of failure.
+ * Returns -1 if wasn't in PREPARE mode (for example if we are now in
+ * cancel mode)
  */
-void enter_critical_mode (const char *msg);
+int enter_critical_mode (const char *msg);
 
 /* Enter NORMAL mode (see above).
  */
