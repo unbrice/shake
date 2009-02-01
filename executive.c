@@ -212,12 +212,12 @@ release (struct accused *a, struct law *l)
 int
 shake_reg (struct accused *a, struct law *l)
 {
-  assert (a && l);
+  assert (a), assert (l);
   assert (S_ISREG (a->mode)), assert (a->guilty);
   const uint GAP = MAGICLEAP * 4;
   char *msg;
   int res;
-  if (l->pretend)
+  if (l->pretend || !is_locked (a->fd))
     return 0;
   capture (a, l);
   if (-1 ==

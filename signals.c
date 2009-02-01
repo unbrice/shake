@@ -52,8 +52,8 @@ handle_signals (int sig)
     {
       assert (current_tempfile);
       unlink (current_tempfile);
-      raise (sig);		// Call the default handler, because
-      // sa_flags == SA_RESETHAND
+      // Call the default handler, because sa_flags == SA_RESETHAND
+      raise (sig);
     }
 }
 
@@ -101,7 +101,6 @@ enter_normal_mode (void)
 void
 enter_critical_mode (const char *msg)
 {
-  assert (msg), assert (current_mode == NORMAL);
   sigset_t sset;
   sigfillset (&sset);
   current_msg = msg;
