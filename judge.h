@@ -87,13 +87,11 @@ struct accused
 
 /*  This function return a struct wich describe properties
  * of the file who's name is given.
- * It also sets the PREPARE mode if the file is a regular one.
  */
 struct accused *investigate (char *name, struct law *l);
 
 /*  This function free structs allocated by
  * investigate().
- * It also sets the NORMAL mode if the file is a regular one.
  */
 void close_case (struct accused *a, struct law *l);
 

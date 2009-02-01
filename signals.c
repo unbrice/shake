@@ -34,14 +34,14 @@ static const char *current_tempfile = NULL;
 static const char *current_file = NULL;	// The file being shaked
 static enum mode current_mode;	// Tell in which mode we are, cf signals.h
 
-/*  If we're in REWRITE mode, display current_msg and exit,
+/*  If we're in CRITICAL mode, display current_msg and exit,
  * if we're in PREPARE mode, cancel the backup by going in cancel mode
  * else unlink the current_tempfile and call he default handler
  */
 static void
 handle_signals (int sig)
 {
-  if (current_mode == REWRITE)
+  if (current_mode == CRITICAL)
     {
       /* Appart from SIGLOCKEXPIRED, we receive only SIGILL, SIGFPE or
        * SIGSEG in this mode (that is, fatal signals) */
@@ -99,18 +99,9 @@ enter_normal_mode (void)
 }
 
 void
-enter_prepare_mode (const char *filename)
-{
-  assert (current_mode == NORMAL);
-  current_mode = PREPARE;
-  current_file = filename;
-}
-
-
-void
 enter_critical_mode (const char *msg)
 {
-  assert (msg), assert (current_mode == PREPARE);
+  assert (msg), assert (current_mode == NORMAL);
   sigset_t sset;
   sigfillset (&sset);
   current_msg = msg;
@@ -124,5 +115,5 @@ enter_critical_mode (const char *msg)
   sigdelset (&sset, SIGTSTP);
   sigdelset (&sset, SIGSTOP);
   sigprocmask (SIG_BLOCK, &sset, NULL);
-  current_mode = REWRITE;
+  current_mode = CRITICAL;
 }
