@@ -82,7 +82,7 @@ investigate (char *name, struct law *l)
     inode = st.st_ino;
   }
   if (!S_ISREG (a->mode) || 0 == a->size)
-    return a;
+    return a;			// a->fd is not opened or locked
   /* open() */
   if (-1 == (a->fd = open (name, O_NOATIME | O_RDWR)))
     {
@@ -95,12 +95,12 @@ investigate (char *name, struct law *l)
       error (0, errno, "%s: failed to acquire a lock", a->name);
       goto freeall;
     }
-  /* the stat() will be applied only on regular files */
+  /* This stat() will be applied only on regular files */
   {
     struct stat st;
     if (-1 == fstat (a->fd, &st))
       {
-	error (0, errno, "%s: lstat() failed", name);
+	error (0, errno, "%s: fstat() failed", name);
 	goto freeall;
       }
     /* Check against race condition */
@@ -123,15 +123,20 @@ investigate (char *name, struct law *l)
     }
   if (-1 == get_testimony (a, l))
     goto freeall;
+  if (is_locked (a->fd))
+    unlock_file (a->fd);
   return a;
 freeall:
-  if (a)
-    {
-      if (a->fd != -1)
+  {
+    if (a->fd != -1)
+      {
+	if (is_locked (a->fd))
+	  unlock_file (a->fd);
 	close (a->fd);
-      free (a->name);
-      free (a);
-    }
+      }
+    free (a->name);
+    free (a);
+  }
   return NULL;
 }
 
@@ -319,9 +324,34 @@ judge (struct accused *a, struct law *l)
     return judge_dir (a, l);
   else if (S_ISREG (a->mode) && a->size)
     {
+      /* Put the lock */
+      if (l->locks && -1 == readlock_file (a->fd, a->name))
+	{
+	  error (0, errno, "%s: failed to acquire a lock", a->name);
+	  return 0;
+	}
+      /* Check against modification */
+      {
+	struct stat st;
+	if (-1 == fstat (a->fd, &st))
+	  {
+	    error (0, errno, "%s: lstat() failed", a->name);
+	    goto freeall;
+	  }
+	if (st.st_blocks * 512 != a->size
+	    || st.st_mtime != a->mtime || st.st_mode != a->mode)
+	  {
+	    error (0, errno, "%s: concurrent access", a->name);
+	    goto freeall;
+	  }
+      }
+      /* Judge and eventually shake */
       a->guilty = judge_reg (a, l);
       if (a->guilty)
 	shake_reg (a, l);
+      /* Unlock */
+      if (is_locked (a->fd))
+	unlock_file (a->fd);
       /*  Show result of investigation, if the file is guilty or if
        * level of verbosity is greater than 2
        */
@@ -329,4 +359,7 @@ judge (struct accused *a, struct law *l)
 	show_reg (a, l);
     }
   return a->guilty;
+freeall:
+  unlock_file (a->fd);
+  return 0;
 }

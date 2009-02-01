@@ -100,7 +100,10 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
 	bool cant_wait;		// tell if we need to flush buffers
 	/* Check if we have to cancel the copy */
 	if (stop_if_input_unlocked && !is_locked (in_fd))
-	  return -2;
+	  {
+	    errno = 0;
+	    return -2;
+	  }
 	/* Read */
 	len = (int) read (in_fd, buffer, buffsize);
 	if (-1 == len)
@@ -259,6 +262,7 @@ shake_reg (struct accused *a, struct law *l)
     error (1, errno, "%s: restore failed ! file have been saved at %s",
 	   a->name, l->tmpname);
   /* Restore most signals */
+  enter_normal_mode ();
   release (a, l);
   free (msg);
   return 0;

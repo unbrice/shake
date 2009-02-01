@@ -40,7 +40,7 @@
  */
 
 #define SIGLOCKEXPIRED OS_RESERVED_SIGNAL
-#define MAX_LOCKED_FDS 8	// Never greater than 3
+#define MAX_LOCKED_FDS 2	// Never greater than 1
 
 /* Describe locks
  */
