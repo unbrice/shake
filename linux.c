@@ -94,8 +94,7 @@ handle_broken_locks (int sig, siginfo_t * info, void *ignored)
     {
       // Cancel this lock
       LOCKS[pos].fd = -1;
-      error (0, 0, "Failed to shake: %s: concurent accesses",
-	     LOCKS[pos].filename);
+      error (0, 0, "%s: concurent accesses", LOCKS[pos].filename);
     }
 }
 

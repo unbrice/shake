@@ -287,7 +287,7 @@ atimesort (const void *a, const void *b)
       /*  If we abort here, it will be a DoS caused by a race condition.
        * So vomit a cryptic error message and go on.
        */
-#ifndef NDEBUG
+#ifdef DEBUG
       error (0, errno, "stat() of %s or %s failed", aname, bname);
 #endif
       return 0;
