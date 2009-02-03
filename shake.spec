@@ -22,7 +22,7 @@ could make it more efficient than other tools, including defrag and, maybe,
 xfs_fsr.
 
 %prep
-%setup
+%setup -q
 
 %build
 %cmake .
