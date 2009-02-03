@@ -12,8 +12,6 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: libattr-devel 
 BuildRequires: help2man
 
-Requires: libattr
-
 %description
 Shake is a defragmenter that runs in userspace, without the need of patching
 the kernel and while the systems is used. There is nothing magic in that:
@@ -37,7 +35,7 @@ rm -Rf %{buildroot}
 
 %files
 %defattr(-, root, root, 0755)
-%doc Changelog COPYING
+%doc NEWS
 %doc %{_mandir}/man8/shake.8*
 %doc %{_mandir}/man8/unattr.8*
 %{_bindir}/shake
