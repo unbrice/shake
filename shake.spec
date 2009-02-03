@@ -12,10 +12,10 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: libattr-devel 
 BuildRequires: help2man
 
-Requires: 
+Requires: libattr
 
 %description
- Shake is a defragmenter that runs in userspace, without the need of patching
+Shake is a defragmenter that runs in userspace, without the need of patching
 the kernel and while the systems is used. There is nothing magic in that:
 it just works by rewriting fragmented files. But it has some heuristics that
 could make it more efficient than other tools, including defrag and, maybe,
