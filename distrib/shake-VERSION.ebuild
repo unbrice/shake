@@ -1,17 +1,18 @@
-# Copyright 2006-2008 Brice Arnould
-# Distributed under the terms of the GNU General Public License
-# version 2, or (at your option) any later version
-#
-#http://kambing.ui.edu/gentoo-portage/eclass/cmake-utils.eclass
-
-DESCRIPTION="Defragmenter (rewrite fragmented or misplaced files)"
-SRC_URI="http://download.savannah.nongnu.org/releases/shake/shake-${PV}.tar.bz2"
-HOMEPAGE="http://vleu.net/shake/ http://savannah.nongnu.org/projects/shake"
+# Copyright 1999-2009 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
 
 inherit cmake-utils
 
-LICENSE="GPL-3 FDL-1.2"
+DESCRIPTION="defragmenter that runs in userspace while the system is used"
+HOMEPAGE="http://vleu.net/shake/"
+SRC_URI="http://download.savannah.nongnu.org/releases/${PN}/${P}.tar.gz"
+
+LICENSE="GPL-3"
 SLOT="0"
-KEYWORDS="~x86 ~amd64 ~ppc"
+KEYWORDS="~amd64 ~ppc ~x86"
 IUSE=""
-DEPEND="sys-apps/attr"
+
+RDEPEND="sys-apps/attr"
+DEPEND="${RDEPEND}
+	sys-apps/help2man"
