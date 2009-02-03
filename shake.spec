@@ -28,7 +28,7 @@ make VERBOSE=1 %{?_smp_mflags}
 
 %install
 rm -Rf %{buildroot}
-make install DESTDIR="%{buildroot}"
+make install/strip DESTDIR="%{buildroot}"
 
 %clean
 rm -Rf %{buildroot}
