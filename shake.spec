@@ -44,7 +44,7 @@ rm -Rf %{buildroot}
 %{_bindir}/unattr
 
 %changelog
-* Mon 02 Feb 2009 Brice Arnould <brice.arnould+shake@gmail.com> - 0.99-1
+* Mon Feb 02 2009 Brice Arnould <brice.arnould+shake@gmail.com> - 0.99-1
 - Updated to release 0.99.
 - Updated dependancies.
 
