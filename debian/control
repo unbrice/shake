@@ -1,4 +1,4 @@
-Source: shake
+Source: shake-fs
 Section: admin
 Priority: optional
 Maintainer: Brice Arnould <brice.arnould+shake@gmail.com>
@@ -6,7 +6,7 @@ Build-Depends: cdbs (>= 0.4.50), cmake (>= 2.4), debhelper (>= 5), help2man (>= 
 Standards-Version: 3.8.0
 Homepage: http://vleu.net/shake/
 
-Package: shake
+Package: shake-fs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Defragmenter (rewrite fragmented or misplaced files)
