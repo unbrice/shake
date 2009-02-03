@@ -1,16 +1,18 @@
-# Copyright (C) 2006-2008 Brice Arnould.
-#  This program is free software; you can redistribute it and/or modify
+#  Copyright (C) 2006-2009 Brice Arnould.
+# 
+#  This file is part of ShaKe.
+#
+#  ShaKe is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-#
+# 
 #  This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see  <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 #### MACROS AND WORKAROUNDS ####
@@ -88,10 +90,6 @@ install (TARGETS shake unattr
   DESTINATION bin)
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/shake.8 ${CMAKE_CURRENT_BINARY_DIR}/unattr.8
   DESTINATION share/man/man8)
-## Debian ##
-set (DEBIAN_PACKAGE_SECTION "admin")
-set (DEBIAN_PACKAGE_BUILDS_DEPENDS "cdbs (>= 0.4.50), cmake (>= 2.4), debhelper (>= 5), help2man (>= 1.26), libattr1-dev (>= 2.0.0)")
-set (DEBIAN_PACKAGE_DEPENDS "libattr1 (>= 2.0.0)")
 ## Packages ##
 set (CPACK_PACKAGE_VERSION_MAJOR ${CPACK_VERSION_MAJOR})
 set (CPACK_PACKAGE_VERSION_MINOR ${CPACK_VERSION_MINOR})
