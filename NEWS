@@ -1,3 +1,5 @@
+2009-XX-XX :  shake 0.XX ; urgency=XX
+	* Fixed a build error on CMake 2.4, patch by DTucny.
 2009-01-31 :  shake 0.99 ; urgency=high
 	* Fixed a security issue : printf of a user-controlled buffer
 	* Added the support for Linux leases

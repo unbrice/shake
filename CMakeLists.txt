@@ -17,7 +17,9 @@
 
 #### MACROS AND WORKAROUNDS ####
 CMAKE_MINIMUM_REQUIRED (VERSION 2.4)
-cmake_policy(SET CMP0005 OLD)
+if(COMMAND cmake_policy) # Needed by CMake 2.4
+  cmake_policy(SET CMP0005 OLD)
+endif(COMMAND cmake_policy)
 set (CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 MACRO (add_help2man_manpage file command)
