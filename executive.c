@@ -1,5 +1,5 @@
 /***************************************************************************/
-/*  Copyright (C) 2006-2009 Brice Arnould.                                 */
+/*  Copyright (C) 2006-2011 Brice Arnould.                                 */
 /*                                                                         */
 /*  This file is part of ShaKe.                                            */
 /*                                                                         */
@@ -218,53 +218,62 @@ shake_reg (struct accused *a, struct law *l)
   assert (a), assert (l);
   assert (S_ISREG (a->mode)), assert (a->guilty);
   const uint GAP = MAGICLEAP * 4;
-  char *msg;
   int res;
-  if (l->pretend || !is_locked (a->fd))
+  if (l->pretend || (l->locks && !is_locked (a->fd)))
     return 0;
   capture (a, l);
-  if (-1 ==
-      asprintf (&msg,
-		"%s: unrecoverable internal error ! file has been saved at %s",
-		a->name, l->tmpname))
-    {
-      int errsv = errno;
-      unlink (l->tmpname);	// could work
-      error (1, errsv, "%s: failed to initialise failure manager", a->name);
-    }
 
   /* Do the backup */
-  res = fcopy (a->fd, l->tmpfd, MAGICLEAP, true);
+  res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
   if (-1 == res)
     {
       // Backup failed
       int errsv = errno;
       unlink (l->tmpname);	// could work
-      error (1, errsv, "%s: temporary copy failed", a->name);
-    }
-  else if (-2 == res
-	   // Try to disable most signals (except critical ones, see signals.h)
-	   || !is_locked (a->fd))
-    {
-      errno = 0;
+      error (0, errsv, "%s: temporary copy failed", a->name);
+      release (a, l);
       return -1;
     }
-  enter_critical_mode (msg);
-  /*  Ask the FS to put the file at a new place, without losing metadatas
-   * nor hard links. Works on ReiserFS but should be tested on other filesystems
+  else if (-2 == res || (l->locks && !is_locked (a->fd)))
+    {
+      errno = 0;
+      release (a, l);
+      return -1;
+    }
+  /* Tries acquiring a write lock and then to copy the backup over the
+   * backup.
    */
-  if (0 > ftruncate (a->fd, (off_t) 0))
-    error (1, errno,
-	   "%s: failed to ftruncate() ! file have been saved at %s",
-	   a->name, l->tmpname);
-  /* Do the reverse copying */
-  if (0 > fcopy (l->tmpfd, a->fd, GAP, false))
-    error (1, errno, "%s: restore failed ! file have been saved at %s",
-	   a->name, l->tmpname);
-  /* Restore most signals */
-  enter_normal_mode ();
+  if (-1 != readlock_to_writelock (a->fd))
+    {
+      char *msg;
+      if (-1 == asprintf (&msg,
+			  "%s: unrecoverable internal error ! file has been saved at %s",
+			  a->name, l->tmpname))
+	{
+	  int errsv = errno;
+	  unlink (l->tmpname);	// could work
+	  error (1, errsv, "%s: failed to initialize failure manager",
+		 a->name);
+	}
+      /* Disables most signals (except critical ones, see signals.h) */
+      enter_critical_mode (msg);
+      /*  Ask the FS to put the file at a new place, without losing metadatas
+       * nor hard links. Works on ReiserFS and Ext4 but should be tested
+       * on other filesystems 
+       */
+      if (0 > ftruncate (a->fd, (off_t) 0))
+	error (1, errno,
+	       "%s: failed to ftruncate() ! file have been saved at %s",
+	       a->name, l->tmpname);
+      /* Do the reverse copying */
+      if (0 > fcopy (l->tmpfd, a->fd, GAP, false))
+	error (1, errno, "%s: restore failed ! file have been saved at %s",
+	       a->name, l->tmpname);
+      /* Restore most signals */
+      enter_normal_mode ();
+      free (msg);
+    }
   release (a, l);
-  free (msg);
   return 0;
 }
 

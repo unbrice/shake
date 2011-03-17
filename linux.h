@@ -1,5 +1,5 @@
 /***************************************************************************/
-/*  Copyright (C) 2006-2009 Brice Arnould.                                 */
+/*  Copyright (C) 2006-2011 Brice Arnould.                                 */
 /*                                                                         */
 /*  This file is part of ShaKe.                                            */
 /*                                                                         */
@@ -27,7 +27,7 @@
 # include <sys/time.h>		// struct timeval
 # include "judge.h"
 
-#define OS_RESERVED_SIGNAL 16
+# define OS_RESERVED_SIGNAL 16
 
 /* Called once, perform OS-specific tasks.
  */
@@ -42,10 +42,12 @@ int os_specific_setup (const char *tempfile);
 int readlock_file (int fd, const char *filename);
 
 /* Release our locks on the file
+ * Return -1 if we no longer owned the lock.
  */
 int unlock_file (int fd);
 
-/* Promote a read lock to a write lock
+/* Promote a read lock to a write lock.
+ * Return -1 if we no longer owned the lock.
  */
 int readlock_to_writelock (int fd);
 

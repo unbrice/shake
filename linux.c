@@ -1,5 +1,5 @@
 /***************************************************************************/
-/*  Copyright (C) 2006-2009 Brice Arnould.                                 */
+/*  Copyright (C) 2006-2011 Brice Arnould.                                 */
 /*                                                                         */
 /*  This file is part of ShaKe.                                            */
 /*                                                                         */
@@ -61,6 +61,8 @@ const char *TEMPFILE;
 
 /* Return the position of the given fd in LOCKS or a position for the
  * invalid fd ( -1 ) if there is no such position
+ * We are sure it exists because there can only be one locked file
+ * and LOCKS has a size of 2.
  */
 static int
 locate_lock (int searchedfd)
@@ -117,7 +119,7 @@ readlock_file (int fd, const char *filename)
 {
   int pos = locate_lock (fd);
   assert (LOCKS[pos].fd == -1);
-  // Technically all our locks are write lease
+  // Technically all our locks are write leases
   if (fcntl (fd, F_SETLEASE, F_WRLCK) != 0)
     return -1;
   if (fcntl (fd, F_SETSIG, SIGLOCKEXPIRED) != 0)
@@ -135,8 +137,8 @@ int
 readlock_to_writelock (int fd)
 {
   int pos = locate_lock (fd);
-  if (pos < 0)
-    return -1;			// The lock has been cancelled
+  if (0 > LOCKS[pos].fd)
+    return -1;			// The lock has been canceled
   LOCKS[pos].write = true;
   return 0;
 }
@@ -145,7 +147,11 @@ int
 unlock_file (int fd)
 {
   int pos = locate_lock (fd);
-  assert (pos > 0);
+  // TODO(unbrice): This line is so as to help debugging unlock_file()
+  // remove it in a few months.
+  errno = 0;
+  if (0 > LOCKS[pos].fd)
+    return -1;
   LOCKS[pos].fd = -1;
   return fcntl (fd, F_SETLEASE, F_UNLCK);
 }
@@ -153,7 +159,7 @@ unlock_file (int fd)
 bool
 is_locked (int fd)
 {
-  return LOCKS[locate_lock (fd)].fd != -1;
+  return LOCKS[locate_lock (fd)].fd >= 0;
 }
 
 

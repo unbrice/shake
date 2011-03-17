@@ -1,5 +1,5 @@
 /***************************************************************************/
-/*  Copyright (C) 2006-2009 Brice Arnould.                                 */
+/*  Copyright (C) 2006-2011 Brice Arnould.                                 */
 /*                                                                         */
 /*  This file is part of ShaKe.                                            */
 /*                                                                         */
@@ -145,14 +145,14 @@ close_case (struct accused *a, struct law *l)
 {
   if (!a)
     return;
-  free (a->name);
-  a->name = NULL;
   if (a->fd >= 0)
     {
       if (l->locks && -1 == unlock_file (a->fd))
-	error (1, errno, "%s: failed to unlock", a->name);
+	error (0, errno, "%s: failed to unlock", a->name);
       close (a->fd);
     }
+  free (a->name);
+  a->name = NULL;
   a->fd = -1;
   a->mode = 0x42;
   if (a->poslog)
@@ -345,12 +345,12 @@ judge (struct accused *a, struct law *l)
 	    goto freeall;
 	  }
       }
-      /* Judge and eventually shake */
+      /* Judge and maybe shake */
       a->guilty = judge_reg (a, l);
       if (a->guilty)
 	shake_reg (a, l);
       /* Unlock */
-      if (is_locked (a->fd))
+      if (l->locks && is_locked (a->fd))
 	unlock_file (a->fd);
       /*  Show result of investigation, if the file is guilty or if
        * level of verbosity is greater than 2

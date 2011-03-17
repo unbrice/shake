@@ -1,5 +1,5 @@
 /***************************************************************************/
-/*  Copyright (C) 2006-2009 Brice Arnould.                                 */
+/*  Copyright (C) 2006-2011 Brice Arnould.                                 */
 /*                                                                         */
 /*  This file is part of ShaKe.                                            */
 /*                                                                         */
@@ -20,7 +20,6 @@
 #ifndef FCOPY_H
 # define FCOPY_H
 # include "judge.h"
-#define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 
 /*  Copy the content of file referenced by in_fd to out_fd
  *  Make file sparse if there's more than gap consecutive '\0',
@@ -36,8 +35,10 @@ int fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked);
 
 /*  Make a backup of a file, truncate original to 0, then copy
  * the backup over it.
- * This can be called only when in PREPARE mode. It internally set the
- * CRITICAL mode but go back in PREPARE mode before returning.
+ * This can be called only when the file is *read* locked. It will
+ * take a write lock while operating.
+ * This can be called only when in NORMAL mode. It internally set the
+ * CRITICAL mode but goes back in NORMAL mode before returning.
  */
 int shake_reg (struct accused *a, struct law *l);
 

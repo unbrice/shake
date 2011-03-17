@@ -1,5 +1,5 @@
 /***************************************************************************/
-/*  Copyright (C) 2006-2009 Brice Arnould.                                 */
+/*  Copyright (C) 2006-2011 Brice Arnould.                                 */
 /*                                                                         */
 /*  This file is part of ShaKe.                                            */
 /*                                                                         */
@@ -33,8 +33,8 @@
  * bad now.
  *  So it looks for fragmented files and read/write them again
  * ("shake them") to help the filesystem to do its job.
- *  Regarding this, ReiserFS (the only FS I tested) have been
- * impressive : it stored closely files of the same directory
+ *  Regarding this, ReiserFS and Ext4 (the only FS I tested) have
+ * been impressive : they stored closely files of the same directory
  * and blocks of fragmented files...
  *  Shake also try to shake files which have a very old ctime, in
  * an attempt to defragment the free space.

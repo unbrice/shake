@@ -1,5 +1,5 @@
 /***************************************************************************/
-/*  Copyright (C) 2006-2009 Brice Arnould.                                 */
+/*  Copyright (C) 2006-2011 Brice Arnould.                                 */
 /*                                                                         */
 /*  This file is part of ShaKe.                                            */
 /*                                                                         */
@@ -32,7 +32,7 @@
 static const char *current_msg = NULL;
 static const char *current_tempfile = NULL;
 static const char *current_file = NULL;	// The file being shaked
-static enum mode current_mode;	// Tell in which mode we are, cf signals.h
+static volatile enum mode current_mode;	// Tell in which mode we are, cf signals.h
 
 /*  If we're in CRITICAL mode, display current_msg and exit,
  * if we're in PREPARE mode, cancel the backup by going in cancel mode
@@ -91,6 +91,7 @@ void
 enter_normal_mode (void)
 {
   sigset_t sset;
+  assert (NORMAL != current_mode);
   sigfillset (&sset);
   current_mode = NORMAL;
   current_msg = NULL;
@@ -102,6 +103,7 @@ void
 enter_critical_mode (const char *msg)
 {
   sigset_t sset;
+  assert (CRITICAL != current_mode);
   sigfillset (&sset);
   current_msg = msg;
   /* Don't suspend signals raised by internal errors */
