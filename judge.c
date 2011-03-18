@@ -89,7 +89,8 @@ investigate (char *name, struct law *l)
       error (0, errno, "%s: open() failed", name);
       goto freeall;
     }
-  /* Put the lock */
+  /* Puts the lock */
+  // it will be released just before returning
   if (l->locks && -1 == readlock_file (a->fd, a->name))
     {
       error (0, errno, "%s: failed to acquire a lock", a->name);
@@ -123,15 +124,13 @@ investigate (char *name, struct law *l)
     }
   if (-1 == get_testimony (a, l))
     goto freeall;
-  if (is_locked (a->fd))
-    unlock_file (a->fd);
+  unlock_file (a->fd);
   return a;
 freeall:
   {
     if (a->fd != -1)
       {
-	if (is_locked (a->fd))
-	  unlock_file (a->fd);
+	unlock_file (a->fd);
 	close (a->fd);
       }
     free (a->name);
@@ -147,10 +146,10 @@ close_case (struct accused *a, struct law *l)
     return;
   if (a->fd >= 0)
     {
+      // We ignore the case where the file is already unlocked
+      // because it is legitimate when eg. there were concurent
+      // accesses
       if (l->locks)
-	// We ignore the case where the file is already unlocked
-	// because it is legitimate when eg. there were concurent
-	// accesses
 	unlock_file (a->fd);
       close (a->fd);
     }
@@ -327,7 +326,7 @@ judge (struct accused *a, struct law *l)
     return judge_dir (a, l);
   else if (S_ISREG (a->mode) && a->size)
     {
-      /* Put the lock */
+      /* Take the lock, it will be released just before returning */
       if (l->locks && -1 == readlock_file (a->fd, a->name))
 	{
 	  error (0, errno, "%s: failed to acquire a lock", a->name);
@@ -344,7 +343,7 @@ judge (struct accused *a, struct law *l)
 	if (st.st_blocks * 512 != a->size
 	    || st.st_mtime != a->mtime || st.st_mode != a->mode)
 	  {
-	    error (0, errno, "%s: concurrent access", a->name);
+	    error (0, 0, "%s: concurrent access", a->name);
 	    goto freeall;
 	  }
       }
@@ -353,8 +352,7 @@ judge (struct accused *a, struct law *l)
       if (a->guilty)
 	shake_reg (a, l);
       /* Unlock */
-      if (l->locks && is_locked (a->fd))
-	unlock_file (a->fd);
+      unlock_file (a->fd);
       /*  Show result of investigation, if the file is guilty or if
        * level of verbosity is greater than 2
        */

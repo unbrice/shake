@@ -52,7 +52,7 @@ handle_signals (int sig)
     {
       assert (current_tempfile);
       unlink (current_tempfile);
-      // Call the default handler, because sa_flags == SA_RESETHAND
+      // Calls the default handler, because sa_flags == SA_RESETHAND
       raise (sig);
     }
 }

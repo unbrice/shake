@@ -147,12 +147,12 @@ int
 unlock_file (int fd)
 {
   int pos = locate_lock (fd);
-  // TODO(unbrice): This line is so as to help debugging unlock_file()
-  // remove it in a few months.
-  errno = 0;
   if (0 > LOCKS[pos].fd)
     return -1;
   LOCKS[pos].fd = -1;
+  // TODO(unbrice): This line is so as to help debugging unlock_file()
+  // remove it in a few months.
+  errno = 0;
   return fcntl (fd, F_SETLEASE, F_UNLCK);
 }
 

@@ -42,7 +42,7 @@ int os_specific_setup (const char *tempfile);
 int readlock_file (int fd, const char *filename);
 
 /* Release our locks on the file
- * Return -1 if we no longer owned the lock.
+ * Return -1 if we do not own the lock.
  */
 int unlock_file (int fd);
 

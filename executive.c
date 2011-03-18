@@ -106,6 +106,7 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
 	/* Check if we have to cancel the copy */
 	if (stop_if_input_unlocked && !is_locked (in_fd))
 	  {
+	    // The warning is shown by the signal handler
 	    errno = 0;
 	    return -2;
 	  }
@@ -182,29 +183,32 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
 }
 
 
-/* Mark a file as shaked
+/* Marks a file as shaked
  */
+// The opposite function is "release"
 static void
 capture (struct accused *a, struct law *l)
 {
-  assert (a && l);
-  /* Update position time */
+  assert (a), assert (l);
+  return;
+}
+
+/* Restores the mtime of a
+ * and mark the file as shaked.
+ */
+// The opposite function is "capture"
+static void
+release (struct accused *a, struct law *l)
+{
+  assert (a), assert (l);
+  assert (a->fd >= 0);
+  /* Updates position time */
   if (l->xattr && -1 == set_ptime (a->fd))
     {
       error (0, errno, "%s: failed to set position time, check user_xattr",
 	     a->name);
     }
-  return;
-}
-
-/* Restore mtime of a file
- */
-static void
-release (struct accused *a, struct law *l)
-{
-  assert (a && l);
-  assert (a->fd >= 0);
-  /* restore mtime */
+  /* Restores mtime */
   {
     struct timeval tv[2];
     tv[0].tv_sec = a->atime;
@@ -235,68 +239,83 @@ warn_if_unlocked (struct accused *a, struct law *l)
     }
 }
 
+/* Backups a->fd over l->tmpfd. First halve of shake_reg() .
+ * Returns -1 if failed, else 0;
+ */
+static int
+shake_reg_backup_phase (struct accused *a, struct law *l)
+{
+  const int res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
+  if (0 > res || warn_if_unlocked (a, l))
+    return -1;
+  else
+    return 0;
+}
+
+/* Rewrites a->fd from l->tmpfd. Second halve of shake_reg() .
+ * This can be called only when a->fd is *write* locked.
+ * This can be called only when in NORMAL mode. It internally set the
+ * CRITICAL mode but goes back in NORMAL mode before returning.
+ * If it fails, it aborts the execution.
+ */
+static void
+shake_reg_rewrite_phase (struct accused *a, struct law *l)
+{
+  const uint GAP = MAGICLEAP * 4;
+  char *msg;
+  if (-1 == asprintf (&msg,
+		      "%s: unrecoverable internal error ! file has been saved at %s",
+		      a->name, l->tmpname))
+    {
+      int errsv = errno;
+      unlink (l->tmpname);	// could work
+      error (1, errsv, "%s: failed to initialize failure manager", a->name);
+    }
+  /* Disables most signals (except critical ones, see signals.h) */
+  enter_critical_mode (msg);
+  /*  Ask the FS to put the file at a new place, without losing metadatas
+   * nor hard links. Works on ReiserFS and Ext4 but should be tested
+   * on other filesystems 
+   */
+  if (0 > ftruncate (a->fd, (off_t) 0))
+    error (1, errno,
+	   "%s: failed to ftruncate() ! file have been saved at %s",
+	   a->name, l->tmpname);
+  /* Do the reverse copying */
+  if (0 > fcopy (l->tmpfd, a->fd, GAP, false))
+    error (1, errno, "%s: restore failed ! file have been saved at %s",
+	   a->name, l->tmpname);
+  /* Restores most signals */
+  enter_normal_mode ();
+  free (msg);
+}
+
 int
 shake_reg (struct accused *a, struct law *l)
 {
   assert (a), assert (l);
   assert (S_ISREG (a->mode)), assert (a->guilty);
-  const uint GAP = MAGICLEAP * 4;
-  int res;
+
   if (l->pretend || warn_if_unlocked (a, l))
     return 0;
+
   capture (a, l);
 
-  /* Do the backup */
-  res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
-  if (-1 == res)
+  if (0 > shake_reg_backup_phase (a, l))
     {
-      // Backup failed
-      int errsv = errno;
-      unlink (l->tmpname);	// could work
-      error (0, errsv, "%s: temporary copy failed", a->name);
+      error (0, errno, "%s: temporary copy failed", a->name);
       release (a, l);
       return -1;
     }
-  else if (-2 == res || warn_if_unlocked (a, l))
-    {
-      errno = 0;
-      release (a, l);
-      return -1;
-    }
+
   /* Tries acquiring a write lock and then to copy the backup over the
-   * backup.
+   * original.
    */
-  if (-1 != readlock_to_writelock (a->fd))
-    {
-      char *msg;
-      if (-1 == asprintf (&msg,
-			  "%s: unrecoverable internal error ! file has been saved at %s",
-			  a->name, l->tmpname))
-	{
-	  int errsv = errno;
-	  unlink (l->tmpname);	// could work
-	  error (1, errsv, "%s: failed to initialize failure manager",
-		 a->name);
-	}
-      /* Disables most signals (except critical ones, see signals.h) */
-      enter_critical_mode (msg);
-      /*  Ask the FS to put the file at a new place, without losing metadatas
-       * nor hard links. Works on ReiserFS and Ext4 but should be tested
-       * on other filesystems 
-       */
-      if (0 > ftruncate (a->fd, (off_t) 0))
-	error (1, errno,
-	       "%s: failed to ftruncate() ! file have been saved at %s",
-	       a->name, l->tmpname);
-      /* Do the reverse copying */
-      if (0 > fcopy (l->tmpfd, a->fd, GAP, false))
-	error (1, errno, "%s: restore failed ! file have been saved at %s",
-	       a->name, l->tmpname);
-      /* Restore most signals */
-      enter_normal_mode ();
-      free (msg);
-    }
+  if (!(l->locks && 0 > readlock_to_writelock (a->fd)))
+    shake_reg_rewrite_phase (a, l);
+
   release (a, l);
+
   return 0;
 }
 
