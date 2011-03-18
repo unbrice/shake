@@ -147,8 +147,11 @@ close_case (struct accused *a, struct law *l)
     return;
   if (a->fd >= 0)
     {
-      if (l->locks && -1 == unlock_file (a->fd))
-	error (0, errno, "%s: failed to unlock", a->name);
+      if (l->locks)
+	// We ignore the case where the file is already unlocked
+	// because it is legitimate when eg. there were concurent
+	// accesses
+	unlock_file (a->fd);
       close (a->fd);
     }
   free (a->name);

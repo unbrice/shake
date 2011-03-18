@@ -64,9 +64,14 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
 	 */
 	if (-1 == ioctl (out_fd, FIGETBSZ, &physbsize))
 	  return -1;
+	else if (physbsize < 1)
+	  {
+	    error (0, 0, "Buggy FS: negative block size !");
+	    return -1;
+	  }
 	if (gap >= physbsize)
 	  {
-	    gap /= physbsize;
+	    gap /= (size_t) physbsize;
 	    // now gap is number of empty buffers required to make the file sparse
 	    buffsize = (size_t) physbsize;
 	  }
@@ -212,6 +217,24 @@ release (struct accused *a, struct law *l)
 }
 
 
+/* If locking is enabled but we don't own a lock over a,
+ * shows a warning about concurrent accesses and returns 1;
+ * else returns 0.
+ */
+static int
+warn_if_unlocked (struct accused *a, struct law *l)
+{
+  if (!l->locks)
+    return 0;
+  else if (is_locked (a->fd))
+    return 0;
+  else
+    {
+      error (0, 0, "%s: concurent accesses", a->name);
+      return 1;
+    }
+}
+
 int
 shake_reg (struct accused *a, struct law *l)
 {
@@ -219,7 +242,7 @@ shake_reg (struct accused *a, struct law *l)
   assert (S_ISREG (a->mode)), assert (a->guilty);
   const uint GAP = MAGICLEAP * 4;
   int res;
-  if (l->pretend || (l->locks && !is_locked (a->fd)))
+  if (l->pretend || warn_if_unlocked (a, l))
     return 0;
   capture (a, l);
 
@@ -234,7 +257,7 @@ shake_reg (struct accused *a, struct law *l)
       release (a, l);
       return -1;
     }
-  else if (-2 == res || (l->locks && !is_locked (a->fd)))
+  else if (-2 == res || warn_if_unlocked (a, l))
     {
       errno = 0;
       release (a, l);
