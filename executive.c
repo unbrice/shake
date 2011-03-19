@@ -193,6 +193,16 @@ capture (struct accused *a, struct law *l)
   return;
 }
 
+/* Returns 1 if locking is enabled but we don't own a lock over a,
+ * else returns 0.
+ */
+static int
+has_been_unlocked (struct accused *a, struct law *l)
+{
+  return l->locks && !is_locked (a->fd);
+}
+
+
 /* Restores the mtime of a
  * and mark the file as shaked.
  */
@@ -202,12 +212,6 @@ release (struct accused *a, struct law *l)
 {
   assert (a), assert (l);
   assert (a->fd >= 0);
-  /* Updates position time */
-  if (l->xattr && -1 == set_ptime (a->fd))
-    {
-      error (0, errno, "%s: failed to set position time, check user_xattr",
-	     a->name);
-    }
   /* Restores mtime */
   {
     struct timeval tv[2];
@@ -217,27 +221,11 @@ release (struct accused *a, struct law *l)
     tv[1].tv_usec = 0;
     futimes (a->fd, tv);
   }
+  if (has_been_unlocked (a, l))
+    error (0, 0, "%s: concurent accesses", a->name);
   return;
 }
 
-
-/* If locking is enabled but we don't own a lock over a,
- * shows a warning about concurrent accesses and returns 1;
- * else returns 0.
- */
-static int
-warn_if_unlocked (struct accused *a, struct law *l)
-{
-  if (!l->locks)
-    return 0;
-  else if (is_locked (a->fd))
-    return 0;
-  else
-    {
-      error (0, 0, "%s: concurent accesses", a->name);
-      return 1;
-    }
-}
 
 /* Backups a->fd over l->tmpfd. First halve of shake_reg() .
  * Returns -1 if failed, else 0;
@@ -246,7 +234,7 @@ static int
 shake_reg_backup_phase (struct accused *a, struct law *l)
 {
   const int res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
-  if (0 > res || warn_if_unlocked (a, l))
+  if (0 > res || has_been_unlocked (a, l))
     return -1;
   else
     return 0;
@@ -296,7 +284,7 @@ shake_reg (struct accused *a, struct law *l)
   assert (a), assert (l);
   assert (S_ISREG (a->mode)), assert (a->guilty);
 
-  if (l->pretend || warn_if_unlocked (a, l))
+  if (l->pretend)
     return 0;
 
   capture (a, l);
@@ -312,7 +300,16 @@ shake_reg (struct accused *a, struct law *l)
    * original.
    */
   if (!(l->locks && 0 > readlock_to_writelock (a->fd)))
-    shake_reg_rewrite_phase (a, l);
+    {
+      shake_reg_rewrite_phase (a, l);
+      /* Updates position time */
+      if (l->xattr && -1 == set_ptime (a->fd))
+	{
+	  error (0, errno,
+		 "%s: failed to set position time, check user_xattr",
+		 a->name);
+	}
+    }
 
   release (a, l);
 
