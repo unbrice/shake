@@ -1,3 +1,9 @@
+shake-fs (0.999) maverick; urgency=high
+
+  * Upstream update
+
+ -- Brice Arnould <brice.arnould+shake@gmail.com>  Sat, 26 Mar 2011 00:38:24 +0100
+
 shake-fs (0.99) intrepid; urgency=high
 
   * Upstream update.
