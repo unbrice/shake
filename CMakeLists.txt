@@ -1,4 +1,4 @@
-#  Copyright (C) 2006-2009 Brice Arnould.
+#  Copyright (C) 2006-2011 Brice Arnould.
 # 
 #  This file is part of ShaKe.
 #
@@ -33,7 +33,7 @@ ENDMACRO ()
 #### PROJECT CONFIG ####
 project (Shake C)
 set (CPACK_VERSION_MAJOR "0")
-set (CPACK_VERSION_MINOR "99")
+set (CPACK_VERSION_MINOR "999")
 set (CPACK_PACKAGE_CONTACT "Brice Arnould <brice.arnould+shake@gmail.com>")
 
 set (VERSION "${CPACK_VERSION_MAJOR}.${CPACK_VERSION_MINOR}")

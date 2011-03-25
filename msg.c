@@ -58,7 +58,7 @@ show_version (void)
 {
   puts ("\
 Shake " VERSION "\n\
-Copyright (C) 2006-2009 Brice Arnould.\n\
+Copyright (C) 2006-2011 Brice Arnould.\n\
 Shake comes with ABSOLUTELY NO WARRANTY. You may redistribute copies of Shake\n\
 under the terms of the GNU General Public License version or greater.\n\
 For more information about these matters, see the file named GPL.txt.\
