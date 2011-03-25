@@ -1,5 +1,5 @@
-2011-XX-XX :  shake 1.00 ; urgency=high
-	* Fixed a bug with leases.
+2011-03-26 :  shake 0.999 ; urgency=high
+	* Fixed a bug with leases being released twice, thanks to Eduard Nicodei
 	* Fixed a build error on CMake 2.4, patch by DTucny
 2009-01-31 :  shake 0.99 ; urgency=high
 	* Fixed a security issue : printf of a user-controlled buffer
