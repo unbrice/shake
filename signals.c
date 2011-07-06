@@ -57,6 +57,30 @@ handle_signals (int sig)
     }
 }
 
+/* Does what sigaction() would, except if the previous
+ * handler is SIG_IGN in which case it does nothing.
+ */
+static int
+sigaction_or_ignore (int signum, const struct sigaction *action,
+		     struct sigaction *old_action_res)
+{
+  struct sigaction old_action;
+  if (-1 == sigaction (signum, NULL, &old_action))
+    return -1;
+  else if (SIG_IGN == old_action.sa_handler)
+    {
+      /* Signal was set to "ignore", do not change it,
+       * but set old_action_res if it is not NULL
+       */
+      if (NULL != old_action_res)
+	*old_action_res = old_action;
+      return 0;
+    }
+  else
+    return sigaction (signum, action, old_action_res);
+}
+
+
 void
 install_sighandler (const char *tempfile)
 {
@@ -66,16 +90,14 @@ install_sighandler (const char *tempfile)
   sigemptyset (&sa.sa_mask);
   // All signals after the firsts will be handled by system's default
   // handlers
-  sa.sa_flags = (int) SA_RESETHAND;
+  sa.sa_flags = SA_RESETHAND;
+  // Automatically restart syscalls after handling a signal
+  sa.sa_flags |= SA_RESTART;
   sa.sa_handler = handle_signals;
   /* Set our handler as the one that will handle critical situations */
   sigaction (SIGFPE, &sa, NULL);
-  sigaction (SIGHUP, &sa, NULL);
   sigaction (SIGILL, &sa, NULL);
-  sigaction (SIGINT, &sa, NULL);
-  sigaction (SIGKILL, &sa, NULL);
   sigaction (SIGPIPE, &sa, NULL);
-  sigaction (SIGQUIT, &sa, NULL);
   sigaction (SIGSEGV, &sa, NULL);
   sigaction (SIGTERM, &sa, NULL);
   sigaction (SIGUSR1, &sa, NULL);
@@ -83,6 +105,14 @@ install_sighandler (const char *tempfile)
   sigaction (SIGBUS, &sa, NULL);
   sigaction (SIGXCPU, &sa, NULL);
   sigaction (SIGXFSZ, &sa, NULL);
+  /* The same holds terminal-related signals, except that we need to
+   * take in account the shell's dispositions.
+   */
+  sigaction_or_ignore (SIGHUP, &sa, NULL);
+  sigaction_or_ignore (SIGINT, &sa, NULL);
+  sigaction_or_ignore (SIGQUIT, &sa, NULL);
+  sigaction_or_ignore (SIGTTIN, &sa, NULL);
+  sigaction_or_ignore (SIGTTOU, &sa, NULL);
   /* Set the NORMAL mode */
   enter_normal_mode ();
 }
