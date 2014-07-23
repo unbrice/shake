@@ -1,3 +1,9 @@
+shake-fs (1.0) trusty; urgency=high
+
+  * Upstream update
+
+ -- Brice Arnould <brice.arnould+shake@gmail.com>  Sat, 20 Jul 2014 00:38:24 +0100
+
 shake-fs (0.999) maverick; urgency=high
 
   * Upstream update
