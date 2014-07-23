@@ -22,6 +22,8 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <time.h>
+#include <sys/stat.h>
+
 typedef unsigned int uint;
 typedef long long int llint;
 
