@@ -1,3 +1,5 @@
+2011-03-26 :  shake 1.0 ; urgency=low
+	* Fixed a build issue with recent glibc.
 2011-03-26 :  shake 0.999 ; urgency=high
 	* Fixed a bug with leases being released twice, thanks to Eduard Nicodei
 	* Fixed a build error on CMake 2.4, patch by DTucny

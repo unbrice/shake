@@ -1,6 +1,6 @@
 Summary: Userspace filesystem defragmenter
 Name: shake
-Version: 0.99
+Version: 1.0
 Release: 1%{?dist}
 License: GPLv3+
 Group: System Environment/Base
@@ -42,6 +42,9 @@ rm -Rf %{buildroot}
 %{_bindir}/unattr
 
 %changelog
+* Wed Jul 23 2014 Brice Arnould <brice.arnould+shake@gmail.com> - 1.0-1
+- Updated to release 1.0.
+
 * Mon Feb 02 2009 Brice Arnould <brice.arnould+shake@gmail.com> - 0.99-1
 - Updated to release 0.99.
 - Updated dependancies.
