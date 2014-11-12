@@ -11,6 +11,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildRequires: libattr-devel 
 BuildRequires: help2man
+BuildRequires: cmake
 
 %description
 Shake is a defragmenter that runs in userspace, without the need of patching
