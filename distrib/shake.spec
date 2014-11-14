@@ -6,7 +6,7 @@ License: GPLv3+
 Group: System Environment/Base
 URL: http://vleu.net/shake/
 
-Source: http://download.savannah.nongnu.org/releases/shake/shake-%{version}.tar.gz
+Source:https://github.com/unbrice/shake/archive/v%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildRequires: libattr-devel 
