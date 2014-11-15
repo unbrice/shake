@@ -6,7 +6,7 @@ License: GPLv3+
 Group: System Environment/Base
 URL: http://vleu.net/shake/
 
-Source:https://github.com/unbrice/shake/archive/v%{version}.tar.gz
+Source: https://github.com/unbrice/shake/archive/v%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildRequires: libattr-devel 
@@ -21,7 +21,7 @@ could make it more efficient than other tools, including defrag and, maybe,
 xfs_fsr.
 
 %prep
-%setup -q
+%autosetup
 
 %build
 %cmake .
