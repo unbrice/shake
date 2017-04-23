@@ -51,7 +51,7 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
     return -1;
   /* Optimisation (on Linux it double the readahead window) */
   posix_fadvise (in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_SEQUENTIAL);
-  posix_fadvise (in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
+  posix_fadvise (in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_NOREUSE);
   /* Get a buffer... */
   {
     if (gap)
@@ -233,7 +233,9 @@ release (struct accused *a, struct law *l)
 static int
 shake_reg_backup_phase (struct accused *a, struct law *l)
 {
+  posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
   const int res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
+  posix_fadvise (l->tmpfd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
   if (0 > res || has_been_unlocked (a, l))
     return -1;
   else
@@ -269,10 +271,16 @@ shake_reg_rewrite_phase (struct accused *a, struct law *l)
     error (1, errno,
 	   "%s: failed to ftruncate() ! file have been saved at %s",
 	   a->name, l->tmpname);
+  if (0 > fallocate(a->fd, FALLOC_FL_KEEP_SIZE, 0, a->size))
+    error (1, errno,
+           "%s: failed to allocate space! file has been saved at %s",
+           a->name, l->tmpname);
   /* Do the reverse copying */
   if (0 > fcopy (l->tmpfd, a->fd, GAP, false))
     error (1, errno, "%s: restore failed ! file have been saved at %s",
 	   a->name, l->tmpname);
+  posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_DONTNEED);
+  posix_fadvise (l->tmpfd, (off_t) 0, (off_t) 0, POSIX_FADV_DONTNEED);
   /* Restores most signals */
   enter_normal_mode ();
   free (msg);
