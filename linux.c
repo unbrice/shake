@@ -32,6 +32,8 @@
 #include <attr/attributes.h>    // attr_setf,
 #include <sys/ioctl.h>          // ioctl()
 #include <linux/fs.h>           // FIBMAP, FIGETBSZ
+#include <linux/fiemap.h>       // FIEMAP
+#include <string.h>             // memset
 #include <arpa/inet.h>          // htonl, ntohl
 
 /* The following try to hide Linux-specific leases behind an interface
@@ -221,6 +223,70 @@ get_testimony (struct accused *a, struct law *l)
       sizelog[logs_pos] = -1;
       poslog[logs_pos] = -1;
     }
+  uint fragsize = 0;
+  /* try to use FIEMAP first before falling back to fibmap */
+  struct fiemap *extmap = malloc (sizeof (struct fiemap));
+  if (!extmap)
+    error (1, errno, "%s: malloc() failed", a->name);
+  memset(extmap, 0, sizeof(struct fiemap));
+  extmap->fm_length = a->size;
+  extmap->fm_flags = FIEMAP_FLAG_SYNC;
+  if (-1 != ioctl (a->fd, FS_IOC_FIEMAP, extmap))
+    {
+      extmap = realloc (extmap, sizeof (struct fiemap) + sizeof (struct fiemap_extent) * extmap->fm_mapped_extents);
+      if (!extmap->fm_extents)
+        error (1, errno, "%s: realloc() failed", a->name);
+      extmap->fm_extent_count = extmap->fm_mapped_extents;
+      extmap->fm_mapped_extents = 0;
+      if (-1 != ioctl (a->fd, FS_IOC_FIEMAP, extmap))
+        {
+          llint physpos = 0;
+          uint physsize = 0;
+          for (int i = 0; i < extmap->fm_mapped_extents; i++)
+            {
+              if (INT_MAX == i)
+                break; // the file is too large for FIEMAP
+              llint adjphyspos = physpos + physsize;
+              physpos = extmap->fm_extents[i].fe_physical;
+              physsize = extmap->fm_extents[i].fe_length;
+              /* ensure the extent is no hole (sparse) and not tailed, nor inline, nor shared */
+              if (physpos && !(extmap->fm_extents[i].fe_flags & (FIEMAP_EXTENT_UNKNOWN|FIEMAP_EXTENT_NOT_ALIGNED|FIEMAP_EXTENT_SHARED)))
+                {
+                  if (!a->start)
+                    a->start = physpos;
+                  a->end = physpos + fragsize;
+                  /* Check if extent is not adjacent */
+                  if (llabs (physpos - adjphyspos) > MAGICLEAP)
+                    {
+                      /* log it */
+                      if (l->verbosity >= 3)
+                        {
+                          /* Periodically enlarge the log */
+                          if (0 == (logs_pos + 2) % BUFFSTEP)
+                            {
+                              size_t nsize = (logs_pos + 2 + BUFFSTEP) * sizeof (*sizelog);
+                              sizelog = realloc (sizelog, nsize);
+                              poslog = realloc (poslog, nsize);
+                              if (!sizelog || !poslog)
+                                error (1, errno, "%s: malloc() failed", a->name);
+                            }
+                          /* Record the pos of the new frag */
+                          poslog[logs_pos] = physpos;
+                          /* Record the size of the new frag */
+                          sizelog[logs_pos] = fragsize;
+                          logs_pos++;
+                        }
+                      if (fragsize && fragsize < crumbsize)
+                        a->crumbc++;
+                      a->fragc++;
+                      fragsize = 0;
+                    }
+                }
+              fragsize += physsize;
+            }
+        }
+      goto out;
+    }
   /*  FIBMAP return physical block's position. We use it to detect start and end
    * of fragments, by checking if the physical position of a block is not
    * adjacent to the previous one.
@@ -229,7 +295,6 @@ get_testimony (struct accused *a, struct law *l)
    */
   {
     llint physpos = 0, prevphyspos = 0;
-    uint fragsize = 0;
     for (int i = 0; i < a->blocks; i++)
       {
         if (INT_MAX == i)
@@ -286,16 +351,20 @@ get_testimony (struct accused *a, struct law *l)
           }
         fragsize += physbsize;
       }
-    /* Record the last size, and close the log */
-    if (l->verbosity >= 3 && fragsize)
-      {
-        if (logs_pos)
-          sizelog[logs_pos - 1] = fragsize;
-        poslog[logs_pos] = -1;
-        sizelog[logs_pos] = -1;
-        a->poslog = poslog;
-        a->sizelog = sizelog;
-      }
+    /* hint for future additions: goto out */
   }
+out:
+  /* Record the last size, and close the log */
+  if (l->verbosity >= 3 && fragsize)
+    {
+      if (logs_pos)
+        sizelog[logs_pos - 1] = fragsize;
+      poslog[logs_pos] = -1;
+      sizelog[logs_pos] = -1;
+      a->poslog = poslog;
+      a->sizelog = sizelog;
+    }
+  if (extmap)
+    free (extmap);
   return 0;
 }
