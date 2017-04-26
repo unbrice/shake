@@ -45,8 +45,7 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
   int *buffer;
   /* Prepare files */
   if (-1 == lseek (in_fd, (off_t) 0, SEEK_SET)
-      || -1 == lseek (out_fd, (off_t) 0, SEEK_SET)
-      || -1 == ftruncate (out_fd, (off_t) 0))
+      || -1 == lseek (out_fd, (off_t) 0, SEEK_SET))
     return -1;
   /* Optimisation (on Linux it double the readahead window) */
   posix_fadvise (in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_SEQUENTIAL);
@@ -230,9 +229,15 @@ release (struct accused *a, struct law *l)
 static int
 shake_reg_backup_phase (struct accused *a, struct law *l)
 {
-  posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
-  const int res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
-  posix_fadvise (l->tmpfd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
+  /* truncate the backup file first
+   */
+  int res = ftruncate (l->tmpfd, 0);
+  if (0 == res)
+    {
+      posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
+      res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
+      posix_fadvise (l->tmpfd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
+    }
   if (0 > res || has_been_unlocked (a, l))
     return -1;
   else
