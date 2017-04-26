@@ -290,13 +290,12 @@ main (int argc, char **argv)
   else
     for (int i = optind; i != argc; i++)
       {
-        int jugement;
         a = investigate (argv[i], &l);
         if (NULL == a)
           continue;             // error have been displayed by investigate()
         if ((dev_t) - 1 != l.kingdom)   // --one-file-system
           l.kingdom = a->fs;
-        jugement = judge (a, &l);
+        judge (a, &l);
         close_case (a, &l);
       }
   unlink (tmpname);
