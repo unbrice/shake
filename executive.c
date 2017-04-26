@@ -236,12 +236,14 @@ shake_reg_backup_phase (struct accused *a, struct law *l)
     {
       posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
       res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
-      posix_fadvise (l->tmpfd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
     }
   if (0 > res || has_been_unlocked (a, l))
     return -1;
   else
-    return 0;
+    {
+      posix_fadvise (l->tmpfd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
+      return 0;
+    }
 }
 
 /* Rewrites a->fd from l->tmpfd. Second halve of shake_reg() .
