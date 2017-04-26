@@ -268,6 +268,13 @@ shake_reg_rewrite_phase (struct accused *a, struct law *l)
     error (1, errno,
            "%s: failed to ftruncate() ! file have been saved at %s",
 	         a->name, l->tmpname);
+
+  /* try to sync the file data to ensure the reallocations are forced to disk,
+   * and to put a little less pressure on the filesystem which reduces load
+   */
+  if (0 > fdatasync(a->fd))
+    error (0, errno, "%s: failed to fdatasync(), ignored", a->name);
+
   if (0 > fallocate(a->fd, FALLOC_FL_KEEP_SIZE, 0, a->size))
     error (1, errno,
            "%s: failed to allocate space! file has been saved at %s",
@@ -281,6 +288,11 @@ shake_reg_rewrite_phase (struct accused *a, struct law *l)
   /* Restores most signals */
   enter_normal_mode ();
   free (msg);
+
+  /* force the rewritten data to disk
+   */
+  if (0 > fdatasync(a->fd))
+    error (0, errno, "%s: failed to fdatasync(), ignored", a->name);
 }
 
 int
