@@ -320,6 +320,15 @@ shake_reg (struct accused *a, struct law *l)
       return -1;
     }
 
+  /* ensure nothing has gone wrong
+   */
+  struct stat astat, lstat;
+  if (0 > fstat (a->fd, &astat))
+    error (1, errno, "%s: fstat() failed", a->name);
+  if (0 > fstat (l->tmpfd, &lstat))
+    error (1, errno, "%s: fstat() failed", l->tmpname);
+  assert (astat.st_size == lstat.st_size);
+
   /* Tries acquiring a write lock and then to copy the backup over the
    * original.
    */
