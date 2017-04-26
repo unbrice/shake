@@ -32,7 +32,6 @@
 /* Called once, perform OS-specific tasks.
  */
 int os_specific_setup (const char *tempfile);
-
 
 
 /* Get a write lock on the file.
