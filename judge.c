@@ -22,27 +22,26 @@
 #include <errno.h>
 #include <assert.h>
 
-#include <string.h>		// strdup(), memset()
-#include <fcntl.h>		// open()
-#include <sys/types.h>		// open(), umask()
-#include <dirent.h>		// scandir()
-#include <sys/stat.h>		// stat(), umask()
-#include <unistd.h>		// stat()
-#include <stdio.h>		// printf(), tmpfile()
-#include <error.h>		// error()
-#include <limits.h>		// SSIZE_MAX
-#include "executive.h"		// fcopy()
+#include <string.h>             // strdup(), memset()
+#include <fcntl.h>              // open()
+#include <sys/types.h>          // open(), umask()
+#include <dirent.h>             // scandir()
+#include <sys/stat.h>           // stat(), umask()
+#include <unistd.h>             // stat()
+#include <stdio.h>              // printf(), tmpfile()
+#include <error.h>              // error()
+#include <limits.h>             // SSIZE_MAX
+#include "executive.h"          // fcopy()
 #include "judge.h"
 #include "linux.h"
 #include "msg.h"
-
 
 struct accused *
 investigate (char *name, struct law *l)
 {
   assert (name);
   struct accused *a;
-  ino_t inode;			// used to check against race between open and stat
+  ino_t inode;                  // used to check against race between open and stat
   /* malloc() */
   {
     a = malloc (sizeof (*a));
@@ -73,8 +72,8 @@ investigate (char *name, struct law *l)
     struct stat st;
     if (-1 == lstat (a->name, &st))
       {
-	error (0, errno, "%s: lstat() failed", name);
-	goto freeall;
+        error (0, errno, "%s: lstat() failed", name);
+        goto freeall;
       }
     a->mode = st.st_mode;
     a->fs = st.st_dev;
@@ -82,7 +81,7 @@ investigate (char *name, struct law *l)
     inode = st.st_ino;
   }
   if (!S_ISREG (a->mode) || 0 == a->size)
-    return a;			// a->fd is not opened or locked
+    return a;                   // a->fd is not opened or locked
   /* open() */
   if (-1 == (a->fd = open (name, O_NOATIME | O_RDWR)))
     {
@@ -101,14 +100,14 @@ investigate (char *name, struct law *l)
     struct stat st;
     if (-1 == fstat (a->fd, &st))
       {
-	error (0, errno, "%s: fstat() failed", name);
-	goto freeall;
+        error (0, errno, "%s: fstat() failed", name);
+        goto freeall;
       }
     /* Check against race condition */
     if (st.st_ino != inode || st.st_dev != a->fs)
       {
-	error (0, errno, "%s: file have moved", name);
-	goto freeall;
+        error (0, errno, "%s: file have moved", name);
+        goto freeall;
       }
     a->size = st.st_blocks * 512;
     a->atime = st.st_atime;
@@ -120,7 +119,7 @@ investigate (char *name, struct law *l)
     {
       time_t ptime = get_ptime (a->fd);
       if (ptime != (time_t) - 1)
-	a->age = time (NULL) - ptime;
+        a->age = time (NULL) - ptime;
     }
   if (-1 == get_testimony (a, l))
     goto freeall;
@@ -130,8 +129,8 @@ freeall:
   {
     if (a->fd != -1)
       {
-	unlock_file (a->fd);
-	close (a->fd);
+        unlock_file (a->fd);
+        close (a->fd);
       }
     free (a->name);
     free (a);
@@ -150,7 +149,7 @@ close_case (struct accused *a, struct law *l)
       // because it is legitimate when eg. there were concurent
       // accesses
       if (l->locks)
-	unlock_file (a->fd);
+        unlock_file (a->fd);
       close (a->fd);
     }
   free (a->name);
@@ -163,7 +162,6 @@ close_case (struct accused *a, struct law *l)
     free (a->sizelog);
   free (a);
 }
-
 
 /*  This function tell return the tolerance, that is a number
  * corresponding to the cost of shake()ing the accused.
@@ -212,7 +210,7 @@ static int
 judge_list (char *restrict * flist, struct law *restrict l)
 {
   assert (flist && l);
-  int res = 0;			// value returned
+  int res = 0;                  // value returned
   /*  We want "y", to be the file examined, "x" the previous one, and
    * eventually "z" the next one (to take neighboors in account).
    */
@@ -228,45 +226,45 @@ judge_list (char *restrict * flist, struct law *restrict l)
     {
       /* Do we have a file after y ? */
       if (z)
-	{
-	  close_case (x, l);
-	  x = y;
-	  y = z;
-	}
+        {
+          close_case (x, l);
+          x = y;
+          y = z;
+        }
       /* Try to add a file from the list */
       if (flist[n + 1])
-	{
-	  z = investigate (flist[n + 1], l);
-	  if (!z)
-	    continue;		// Try the next file.
-	}
+        {
+          z = investigate (flist[n + 1], l);
+          if (!z)
+            continue;           // Try the next file.
+        }
       else
-	z = NULL;
+        z = NULL;
       /* Do we actually have a file ? */
       if (!y)
-	continue;
+        continue;
       /* Do we know where the file should be ? */
       {
-	y->ideal = 0;
-	if (y->start)
-	  {
-	    if (x && x->end && labs (x->atime - y->atime) < MAGICTIME)
-	      {
-		if (z && z->start && labs (z->atime - y->atime) < MAGICTIME)
-		  y->ideal = (x->end + z->start) / 2;
-		else
-		  y->ideal = (x->end + MAGICLEAP);
-	      }
-	    else if (z && z->start && labs (z->atime - y->atime) < MAGICTIME)
-              y->ideal = (z->start - y->size - MAGICLEAP);
-	  }
+        y->ideal = 0;
+        if (y->start)
+          {
+            if (x && x->end && labs (x->atime - y->atime) < MAGICTIME)
+              {
+                if (z && z->start && labs (z->atime - y->atime) < MAGICTIME)
+                  y->ideal = (x->end + z->start) / 2;
+                else
+                  y->ideal = (x->end + MAGICLEAP);
+              }
+            else if (z && z->start && labs (z->atime - y->atime) < MAGICTIME)
+              y->ideal = (z->start - z->size - MAGICLEAP);
+          }
       }
       /* judge */
       if (-1 == judge (y, l))
-	{
-	  res = -1;
-	  break;
-	}
+        {
+          res = -1;
+          break;
+        }
     }
   close_case (x, l);
   close_case (y, l);
@@ -289,10 +287,10 @@ judge_dir (struct accused *a, struct law *l)
       int res;
       char **flist = list_dir (a->name, true);
       if (!flist)
-	{
-	  error (0, 0, "%s: list_dir() failed", a->name);
-	  return -1;
-	}
+        {
+          error (0, 0, "%s: list_dir() failed", a->name);
+          return -1;
+        }
       res = judge_list (flist, l);
       close_list (flist);
       return res;
@@ -328,36 +326,36 @@ judge (struct accused *a, struct law *l)
     {
       /* Take the lock, it will be released just before returning */
       if (l->locks && -1 == readlock_file (a->fd, a->name))
-	{
-	  error (0, errno, "%s: failed to acquire a lock", a->name);
-	  return 0;
-	}
+        {
+          error (0, errno, "%s: failed to acquire a lock", a->name);
+          return 0;
+        }
       /* Check against modification */
       {
-	struct stat st;
-	if (-1 == fstat (a->fd, &st))
-	  {
-	    error (0, errno, "%s: lstat() failed", a->name);
-	    goto freeall;
-	  }
-	if (st.st_blocks * 512 != a->size
-	    || st.st_mtime != a->mtime || st.st_mode != a->mode)
-	  {
-	    error (0, 0, "%s: concurrent access", a->name);
-	    goto freeall;
-	  }
+        struct stat st;
+        if (-1 == fstat (a->fd, &st))
+          {
+            error (0, errno, "%s: lstat() failed", a->name);
+            goto freeall;
+          }
+        if (st.st_blocks * 512 != a->size
+            || st.st_mtime != a->mtime || st.st_mode != a->mode)
+          {
+            error (0, 0, "%s: concurrent access", a->name);
+            goto freeall;
+          }
       }
       /* Judge and maybe shake */
       a->guilty = judge_reg (a, l);
       if (a->guilty)
-	shake_reg (a, l);
+        shake_reg (a, l);
       /* Unlock */
       unlock_file (a->fd);
       /*  Show result of investigation, if the file is guilty or if
        * level of verbosity is greater than 2
        */
       if ((a->guilty && l->verbosity) || l->verbosity >= 2)
-	show_reg (a, l);
+        show_reg (a, l);
     }
   return a->guilty;
 freeall:

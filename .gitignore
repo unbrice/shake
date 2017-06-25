@@ -1,0 +1,14 @@
+/CMakeCache.txt
+/CMakeFiles/
+/CMakeLists.txt.user
+/CPackConfig.cmake
+/CPackSourceConfig.cmake
+/Makefile
+/cmake_install.cmake
+/config.h
+/shake
+/shake.8
+/unattr
+/unattr.8
+/.tags*
+/*.sublime-*
