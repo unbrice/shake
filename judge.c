@@ -256,7 +256,7 @@ judge_list (char *restrict * flist, struct law *restrict l)
                   y->ideal = (x->end + MAGICLEAP);
               }
             else if (z && z->start && labs (z->atime - y->atime) < MAGICTIME)
-              y->ideal = (z->start - z->size - MAGICLEAP);
+              y->ideal = (z->start - y->size - MAGICLEAP);
           }
       }
       /* judge */

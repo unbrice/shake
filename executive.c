@@ -45,12 +45,11 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
   int *buffer;
   /* Prepare files */
   if (-1 == lseek (in_fd, (off_t) 0, SEEK_SET)
-      || -1 == lseek (out_fd, (off_t) 0, SEEK_SET)
-      || -1 == ftruncate (out_fd, (off_t) 0))
+      || -1 == lseek (out_fd, (off_t) 0, SEEK_SET))
     return -1;
   /* Optimisation (on Linux it double the readahead window) */
   posix_fadvise (in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_SEQUENTIAL);
-  posix_fadvise (in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
+  posix_fadvise (in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_NOREUSE);
   /* Get a buffer... */
   {
     if (gap)
@@ -230,11 +229,56 @@ release (struct accused *a, struct law *l)
 static int
 shake_reg_backup_phase (struct accused *a, struct law *l)
 {
-  const int res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
+  static int can_reflink = 1;
+  /* truncate the backup file first, also required for FICLONE to be effective
+   */
+  int res = ftruncate (l->tmpfd, 0);
+  if (0 == res)
+    {
+      /* try to make a reflink copy first on filesystems that support it,
+       * this saves us from writing the file twice, thus double the
+       * performance
+       */
+      if (can_reflink && (0 == ioctl (l->tmpfd, FICLONE, a->fd)))
+        {
+          /* ensure nothing has gone wrong
+           */
+          struct stat astat, lstat;
+          if (0 > fstat (a->fd, &astat))
+            error (1, errno, "%s: fstat() failed", a->name);
+          if (0 > fstat (l->tmpfd, &lstat))
+            error (1, errno, "%s: fstat() failed", l->tmpname);
+          assert (astat.st_size == lstat.st_size);
+
+          /* give the filesystem a relief
+           */
+          fdatasync (l->tmpfd);
+        }
+      else
+        {
+          if (can_reflink)
+            {
+              /* optimize: do not try any more cloning if it failed once,
+               * this assumes you're not crossing file system boundaries.
+               * TODO: fix this later by putting the tmp file on the same
+               * file system
+               */
+              can_reflink = 0;
+              error (0, errno,
+                     "%s: FICLONE failed, falling back to normal copy",
+                     a->name);
+            }
+          posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
+          res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
+        }
+    }
   if (0 > res || has_been_unlocked (a, l))
     return -1;
   else
-    return 0;
+    {
+      posix_fadvise (l->tmpfd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
+      return 0;
+    }
 }
 
 /* Rewrites a->fd from l->tmpfd. Second halve of shake_reg() .
@@ -265,14 +309,32 @@ shake_reg_rewrite_phase (struct accused *a, struct law *l)
   if (0 > ftruncate (a->fd, (off_t) 0))
     error (1, errno,
            "%s: failed to ftruncate() ! file have been saved at %s",
+	         a->name, l->tmpname);
+
+  /* try to sync the file data to ensure the reallocations are forced to disk,
+   * and to put a little less pressure on the filesystem which reduces load
+   */
+  if (0 > fdatasync(a->fd))
+    error (0, errno, "%s: failed to fdatasync(), ignored", a->name);
+
+  if (0 > fallocate(a->fd, FALLOC_FL_KEEP_SIZE, 0, a->size))
+    error (1, errno,
+           "%s: failed to allocate space! file has been saved at %s",
            a->name, l->tmpname);
   /* Do the reverse copying */
   if (0 > fcopy (l->tmpfd, a->fd, GAP, false))
     error (1, errno, "%s: restore failed ! file have been saved at %s",
            a->name, l->tmpname);
+  posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_DONTNEED);
+  posix_fadvise (l->tmpfd, (off_t) 0, (off_t) 0, POSIX_FADV_DONTNEED);
   /* Restores most signals */
   enter_normal_mode ();
   free (msg);
+
+  /* force the rewritten data to disk
+   */
+  if (0 > fdatasync(a->fd))
+    error (0, errno, "%s: failed to fdatasync(), ignored", a->name);
 }
 
 int
