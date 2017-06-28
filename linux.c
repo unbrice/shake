@@ -20,21 +20,21 @@
 #include "linux.h"
 
 #include <stdlib.h>
-#include <stdio.h>		// snprintf
-#include <limits.h>		// CHAR_BIT
-#include <time.h>		// time, time_t
-#include <assert.h>		// assert
-#include <errno.h>		// errno
-#include <error.h>		// error()
-#include <fcntl.h>		// fcntl()
-#include <signal.h>		// sigaction()
-#include <unistd.h>		// fcntl()
-#include <attr/attributes.h>	// attr_setf,
-#include <sys/ioctl.h>		// ioctl()
-#include <linux/fs.h>		// FIBMAP, FIGETBSZ
-#include <linux/fiemap.h>	// FIEMAP
-#include <string.h>		// memset
-#include <arpa/inet.h>		// htonl, ntohl
+#include <stdio.h>              // snprintf
+#include <limits.h>             // CHAR_BIT
+#include <time.h>               // time, time_t
+#include <assert.h>             // assert
+#include <errno.h>              // errno
+#include <error.h>              // error()
+#include <fcntl.h>              // fcntl()
+#include <signal.h>             // sigaction()
+#include <unistd.h>             // fcntl()
+#include <attr/attributes.h>    // attr_setf,
+#include <sys/ioctl.h>          // ioctl()
+#include <linux/fs.h>           // FIBMAP, FIGETBSZ
+#include <linux/fiemap.h>	      // FIEMAP
+#include <string.h>		          // memset
+#include <arpa/inet.h>          // htonl, ntohl
 
 /* The following try to hide Linux-specific leases behind an interface
  * similar to Posix locks.
@@ -42,7 +42,7 @@
  */
 
 #define SIGLOCKEXPIRED OS_RESERVED_SIGNAL
-#define MAX_LOCKED_FDS 2	// Never greater than 1
+#define MAX_LOCKED_FDS 2        // Never greater than 1
 
 /* Describe locks
  */
@@ -90,10 +90,10 @@ handle_broken_locks (int sig, siginfo_t * info, void *ignored)
   assert (LOCKS[pos].fd != -1);
   if (LOCKS[pos].write)
     error (0, 0,
-	   "%s: Another program is trying to access the file; "
-	   "if shaking takes more than lease-break-time seconds "
-	   "shake will be killed; if this happens a backup will be "
-	   "available in '%s'", LOCKS[pos].filename, TEMPFILE);
+           "%s: Another program is trying to access the file; "
+           "if shaking takes more than lease-break-time seconds "
+           "shake will be killed; if this happens a backup will be "
+           "available in '%s'", LOCKS[pos].filename, TEMPFILE);
   else
     {
       // Cancel this lock
@@ -140,7 +140,7 @@ readlock_to_writelock (int fd)
 {
   int pos = locate_lock (fd);
   if (0 > LOCKS[pos].fd)
-    return -1;			// The lock has been canceled
+    return -1;                  // The lock has been canceled
   LOCKS[pos].write = true;
   return 0;
 }
@@ -163,12 +163,11 @@ is_locked (int fd)
 {
   return LOCKS[locate_lock (fd)].fd >= 0;
 }
-
 
 /*  could make an estimation of the required size, but should'nt because attr_setf
  * set fixed size attributes, so it would cause problems when moving the disk
  */
-#define DATE_SIZE sizeof(uint32_t)	// TODO: change this value before 2107
+#define DATE_SIZE sizeof(uint32_t)      // TODO: change this value before 2107
 
 int
 set_ptime (int fd)
@@ -176,7 +175,7 @@ set_ptime (int fd)
   assert (fd > -1);
   uint32_t date = htonl ((uint32_t) time (NULL));
   return attr_setf (fd, "shake.ptime", (char *) &date, DATE_SIZE,
-		    ATTR_DONTFOLLOW);
+                    ATTR_DONTFOLLOW);
 }
 
 time_t
@@ -193,7 +192,6 @@ get_ptime (int fd)
     return (time_t) - 1;
   return (time_t) date;
 }
-
 
 int
 get_testimony (struct accused *a, struct law *l)
@@ -203,14 +201,14 @@ get_testimony (struct accused *a, struct law *l)
   uint physbsize;
   int crumbsize;
   /* Framents logs */
-  llint *sizelog = NULL, *poslog = NULL;	// Framgents sizes and positions
-  unsigned int logs_pos = 0;	// Position in logs
+  llint *sizelog = NULL, *poslog = NULL;        // Framgents sizes and positions
+  unsigned int logs_pos = 0;    // Position in logs
   /* Convert sizes in number of physical blocks */
   {
     if (-1 == ioctl (a->fd, FIGETBSZ, &physbsize))
       {
-	error (0, errno, "%s: FIGETBSZ() failed", a->name);
-	return -1;
+        error (0, errno, "%s: FIGETBSZ() failed", a->name);
+        return -1;
       }
     a->blocks = (a->size + physbsize - 1) / physbsize;
     crumbsize = (int) ((double) a->size * l->crumbratio);
@@ -221,7 +219,7 @@ get_testimony (struct accused *a, struct law *l)
       sizelog = malloc (BUFFSTEP * sizeof (*sizelog));
       poslog = malloc (BUFFSTEP * sizeof (*poslog));
       if (!sizelog || !poslog)
-	error (1, errno, "%s: malloc() failed", a->name);
+        error (1, errno, "%s: malloc() failed", a->name);
       sizelog[logs_pos] = -1;
       poslog[logs_pos] = -1;
     }
@@ -299,69 +297,69 @@ get_testimony (struct accused *a, struct law *l)
     llint physpos = 0, prevphyspos = 0;
     for (int i = 0; i < a->blocks; i++)
       {
-	if (INT_MAX == i)
-	  break;		// The file is too large for FIBMAP
-	/* Query the physical pos of the i-nth block */
-	prevphyspos = physpos;
-	physpos = i;
-	if (-1 == ioctl (a->fd, FIBMAP, &physpos))
-	  {
-	    error (0, errno, "%s: FIBMAP failed", a->name);
-	    return -1;
-	  }
-	physpos = physpos * physbsize;
-	/* workaround reiser4 bug fixed 2006-08-27, TODO : remove */
-	if (physpos < 0)
-	  {
-	    error (0, 0, "ReiserFS4 bug : UPDATE to at least 2006-08-27");
-	    physpos = 0;
-	  }
-	/* physpos == 0 if sparse file */
-	if (physpos)
-	  {
-	    if (!a->start)
-	      a->start = physpos;
-	    a->end = physpos;
-	    /* Check if we have a new fragment, */
-	    if (llabs (physpos - prevphyspos) > MAGICLEAP)
-	      {
-		/* log it */
-		if (l->verbosity >= 3)
-		  {
-		    /* Periodically enlarge the log */
-		    if (0 == (logs_pos + 2) % BUFFSTEP)
-		      {
-			size_t nsize =
-			  (logs_pos + 2 + BUFFSTEP) * sizeof (*sizelog);
-			sizelog = realloc (sizelog, nsize);
-			poslog = realloc (poslog, nsize);
-			if (!sizelog || !poslog)
-			  error (1, errno, "%s: malloc() failed", a->name);
-		      }
-		    /* Record the pos of the new frag */
-		    poslog[logs_pos] = physpos;
-		    /* Record the size of the old frag */
-		    if (logs_pos)
-		      sizelog[logs_pos - 1] = fragsize;
-		    logs_pos++;
-		  }
-		if (fragsize && fragsize < crumbsize)
-		  a->crumbc++;
-		a->fragc++;
-		fragsize = 0;
-	      }
-	  }
-	fragsize += physbsize;
+        if (INT_MAX == i)
+          break;                // The file is too large for FIBMAP
+        /* Query the physical pos of the i-nth block */
+        prevphyspos = physpos;
+        physpos = i;
+        if (-1 == ioctl (a->fd, FIBMAP, &physpos))
+          {
+            error (0, errno, "%s: FIBMAP failed", a->name);
+            return -1;
+          }
+        physpos = physpos * physbsize;
+        /* workaround reiser4 bug fixed 2006-08-27, TODO : remove */
+        if (physpos < 0)
+          {
+            error (0, 0, "ReiserFS4 bug : UPDATE to at least 2006-08-27");
+            physpos = 0;
+          }
+        /* physpos == 0 if sparse file */
+        if (physpos)
+          {
+            if (!a->start)
+              a->start = physpos;
+            a->end = physpos;
+            /* Check if we have a new fragment, */
+            if (llabs (physpos - prevphyspos) > MAGICLEAP)
+              {
+                /* log it */
+                if (l->verbosity >= 3)
+                  {
+                    /* Periodically enlarge the log */
+                    if (0 == (logs_pos + 2) % BUFFSTEP)
+                      {
+                        size_t nsize =
+                          (logs_pos + 2 + BUFFSTEP) * sizeof (*sizelog);
+                        sizelog = realloc (sizelog, nsize);
+                        poslog = realloc (poslog, nsize);
+                        if (!sizelog || !poslog)
+                          error (1, errno, "%s: malloc() failed", a->name);
+                      }
+                    /* Record the pos of the new frag */
+                    poslog[logs_pos] = physpos;
+                    /* Record the size of the old frag */
+                    if (logs_pos)
+                      sizelog[logs_pos - 1] = fragsize;
+                    logs_pos++;
+                  }
+                if (fragsize && fragsize < crumbsize)
+                  a->crumbc++;
+                a->fragc++;
+                fragsize = 0;
+              }
+          }
+        fragsize += physbsize;
       }
     /* Record the last size, and close the log */
     if (l->verbosity >= 3 && fragsize)
       {
-	if (logs_pos)
-	  sizelog[logs_pos - 1] = fragsize;
-	poslog[logs_pos] = -1;
-	sizelog[logs_pos] = -1;
-	a->poslog = poslog;
-	a->sizelog = sizelog;
+        if (logs_pos)
+          sizelog[logs_pos - 1] = fragsize;
+        poslog[logs_pos] = -1;
+        sizelog[logs_pos] = -1;
+        a->poslog = poslog;
+        a->sizelog = sizelog;
       }
   }
 out:

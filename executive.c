@@ -19,30 +19,29 @@
 
 #define _GNU_SOURCE
 #include "executive.h"
-#include "linux.h"		// is_lock_canceled()
+#include "linux.h"              // is_lock_canceled()
 #include "signals.h"
 #include <alloca.h>
 #include <stdlib.h>
-#include <stdio.h>		// asprintf()
+#include <stdio.h>              // asprintf()
 #include <errno.h>
 #include <assert.h>
 #include <string.h>
-#include <linux/fs.h>		// FIGETBSZ
-#include <limits.h>		// SSIZE_MAX
-#include <sys/stat.h>		// stat()
-#include <unistd.h>		// stat()
-#include <sys/ioctl.h>		// ioctl()
-#include <error.h>		// error()
-#include <sys/types.h>		// opendir()
-#include <dirent.h>		// opendir()
-#include <sys/time.h>		// futimes()
-
+#include <linux/fs.h>           // FIGETBSZ
+#include <limits.h>             // SSIZE_MAX
+#include <sys/stat.h>           // stat()
+#include <unistd.h>             // stat()
+#include <sys/ioctl.h>          // ioctl()
+#include <error.h>              // error()
+#include <sys/types.h>          // opendir()
+#include <dirent.h>             // opendir()
+#include <sys/time.h>           // futimes()
 
 int
 fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
 {
   assert (in_fd > -1), assert (out_fd > -1);
-  size_t buffsize = 65535;	// Must fit in a integer
+  size_t buffsize = 65535;      // Must fit in a integer
   int *buffer;
   /* Prepare files */
   if (-1 == lseek (in_fd, (off_t) 0, SEEK_SET)
@@ -56,32 +55,32 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
   {
     if (gap)
       {
-	int physbsize;
-	/*  Convert the gap in a number of blocks
-	 *  The idea is that it would be useless to make only a part of a block
-	 * sparse, so we use buffers of physical block size and make a hole
-	 * only if there's enough consecutive empty buffers.
-	 */
-	if (-1 == ioctl (out_fd, FIGETBSZ, &physbsize))
-	  return -1;
-	else if (physbsize < 1)
-	  {
-	    error (0, 0, "Buggy FS: negative block size !");
-	    return -1;
-	  }
-	if (gap >= physbsize)
-	  {
-	    gap /= (size_t) physbsize;
-	    // now gap is number of empty buffers required to make the file sparse
-	    buffsize = (size_t) physbsize;
-	  }
+        int physbsize;
+        /*  Convert the gap in a number of blocks
+         *  The idea is that it would be useless to make only a part of a block
+         * sparse, so we use buffers of physical block size and make a hole
+         * only if there's enough consecutive empty buffers.
+         */
+        if (-1 == ioctl (out_fd, FIGETBSZ, &physbsize))
+          return -1;
+        else if (physbsize < 1)
+          {
+            error (0, 0, "Buggy FS: negative block size !");
+            return -1;
+          }
+        if (gap >= physbsize)
+          {
+            gap /= (size_t) physbsize;
+            // now gap is number of empty buffers required to make the file sparse
+            buffsize = (size_t) physbsize;
+          }
       }
     if (buffsize > SSIZE_MAX)
       {
-	buffsize = SSIZE_MAX;
-	gap = 0;
+        buffsize = SSIZE_MAX;
+        gap = 0;
       }
-    buffer = alloca (buffsize);	// better than "goto freeall"... or not ?
+    buffer = alloca (buffsize); // better than "goto freeall"... or not ?
     // Else would read uninitialised datas when filesize < buffsize
     // and is_empty could be set uncorrectly.
     memset (buffer, 0xFF, buffsize);
@@ -89,80 +88,80 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
   /* Let's go ! */
   {
     int len = 0;
-    uint empty_buffs = 0;	// Number of consecutive empty buffers, for sparse files
-    bool is_empty = 0;		// Tell if the buffer is empty, for sparse files
-    int *empty = NULL;		// An empty buffer, for sparse files
+    uint empty_buffs = 0;       // Number of consecutive empty buffers, for sparse files
+    bool is_empty = 0;          // Tell if the buffer is empty, for sparse files
+    int *empty = NULL;          // An empty buffer, for sparse files
     if (gap)
       {
-	empty = alloca (buffsize);	// better than goto free()... or not ?
-	if (!empty)
-	  return -1;
-	memset (empty, '\0', buffsize);
+        empty = alloca (buffsize);      // better than goto free()... or not ?
+        if (!empty)
+          return -1;
+        memset (empty, '\0', buffsize);
       }
     while (true)
       {
-	bool eof;		// tell if we are at end of file
-	bool cant_wait;		// tell if we need to flush buffers
-	/* Check if we have to cancel the copy */
-	if (stop_if_input_unlocked && !is_locked (in_fd))
-	  {
-	    // The warning is shown by the signal handler
-	    errno = 0;
-	    return -2;
-	  }
-	/* Read */
-	len = (int) read (in_fd, buffer, buffsize);
-	if (-1 == len)
-	  return -1;
-	eof = (len != buffsize);
-	if (gap)
-	  {
-	    assert (0 == buffsize % sizeof (*buffer));
-	    /* Is the buffer empty ? */
-	    is_empty = 1;
-	    // at EOF we will take in account previously read datas
-	    // but that is not important
-	    for (uint i = 0; i < buffsize / sizeof (*buffer); i++)
-	      if (buffer[i])
-		{
-		  is_empty = 0;	// no
-		  break;
-		}
-	    if (eof)
-	      is_empty = 0;	// force write of the last buffer
-	    if (is_empty)
-	      empty_buffs++;	// (can't overflow, see cant_wait two lines down)
-	  }
-	/* if in sparse mode, we'll wait for eof or data, or int overflow before writing */
-	cant_wait = !is_empty || eof
-	  || (empty_buffs + 1) * buffsize > INT_MAX;
-	if (gap && cant_wait)
-	  {
-	    /* Should we make a hole ? */
-	    if (empty_buffs >= gap && len != 0)	// Don't finish with a hole if len == 0
-	      {
-		if (-1 ==
-		    lseek (out_fd, (off_t) (empty_buffs * buffsize),
-			   SEEK_CUR))
-		  return -1;
-		empty_buffs = 0;
-	      }
-	    else
-	      {
-		// Write empty space
-		for (; empty_buffs; empty_buffs--)
-		  if (buffsize != write (out_fd, empty, buffsize))
-		    return -1;
-		assert (0 == empty_buffs);
-	      }
-	  }
-	if (!gap || cant_wait)
-	  {
-	    if (len != write (out_fd, buffer, (uint) len))
-	      return -1;
-	  }
-	if (eof)
-	  break;
+        bool eof;               // tell if we are at end of file
+        bool cant_wait;         // tell if we need to flush buffers
+        /* Check if we have to cancel the copy */
+        if (stop_if_input_unlocked && !is_locked (in_fd))
+          {
+            // The warning is shown by the signal handler
+            errno = 0;
+            return -2;
+          }
+        /* Read */
+        len = (int) read (in_fd, buffer, buffsize);
+        if (-1 == len)
+          return -1;
+        eof = (len != buffsize);
+        if (gap)
+          {
+            assert (0 == buffsize % sizeof (*buffer));
+            /* Is the buffer empty ? */
+            is_empty = 1;
+            // at EOF we will take in account previously read datas
+            // but that is not important
+            for (uint i = 0; i < buffsize / sizeof (*buffer); i++)
+              if (buffer[i])
+                {
+                  is_empty = 0; // no
+                  break;
+                }
+            if (eof)
+              is_empty = 0;     // force write of the last buffer
+            if (is_empty)
+              empty_buffs++;    // (can't overflow, see cant_wait two lines down)
+          }
+        /* if in sparse mode, we'll wait for eof or data, or int overflow before writing */
+        cant_wait = !is_empty || eof
+          || (empty_buffs + 1) * buffsize > INT_MAX;
+        if (gap && cant_wait)
+          {
+            /* Should we make a hole ? */
+            if (empty_buffs >= gap && len != 0) // Don't finish with a hole if len == 0
+              {
+                if (-1 ==
+                    lseek (out_fd, (off_t) (empty_buffs * buffsize),
+                           SEEK_CUR))
+                  return -1;
+                empty_buffs = 0;
+              }
+            else
+              {
+                // Write empty space
+                for (; empty_buffs; empty_buffs--)
+                  if (buffsize != write (out_fd, empty, buffsize))
+                    return -1;
+                assert (0 == empty_buffs);
+              }
+          }
+        if (!gap || cant_wait)
+          {
+            if (len != write (out_fd, buffer, (uint) len))
+              return -1;
+          }
+        if (eof)
+          break;
       }
   }
   /* Verify we didn't miss anything */
@@ -175,13 +174,12 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
       return -1;
     if (out_stats.st_size != in_stats.st_size)
       {
-	errno = 0;		// the error would be in the check and so meaningless
-	return -1;
+        errno = 0;              // the error would be in the check and so meaningless
+        return -1;
       }
   }
   return 1;
 }
-
 
 /* Marks a file as shaked
  */
@@ -225,7 +223,6 @@ release (struct accused *a, struct law *l)
     error (0, 0, "%s: concurent accesses", a->name);
   return;
 }
-
 
 /* Backups a->fd over l->tmpfd. First halve of shake_reg() .
  * Returns -1 if failed, else 0;
@@ -252,27 +249,27 @@ shake_reg_rewrite_phase (struct accused *a, struct law *l)
   const uint GAP = MAGICLEAP * 4;
   char *msg;
   if (-1 == asprintf (&msg,
-		      "%s: unrecoverable internal error ! file has been saved at %s",
-		      a->name, l->tmpname))
+                      "%s: unrecoverable internal error ! file has been saved at %s",
+                      a->name, l->tmpname))
     {
       int errsv = errno;
-      unlink (l->tmpname);	// could work
+      unlink (l->tmpname);      // could work
       error (1, errsv, "%s: failed to initialize failure manager", a->name);
     }
   /* Disables most signals (except critical ones, see signals.h) */
   enter_critical_mode (msg);
   /*  Ask the FS to put the file at a new place, without losing metadatas
    * nor hard links. Works on ReiserFS and Ext4 but should be tested
-   * on other filesystems 
+   * on other filesystems
    */
   if (0 > ftruncate (a->fd, (off_t) 0))
     error (1, errno,
-	   "%s: failed to ftruncate() ! file have been saved at %s",
-	   a->name, l->tmpname);
+           "%s: failed to ftruncate() ! file have been saved at %s",
+           a->name, l->tmpname);
   /* Do the reverse copying */
   if (0 > fcopy (l->tmpfd, a->fd, GAP, false))
     error (1, errno, "%s: restore failed ! file have been saved at %s",
-	   a->name, l->tmpname);
+           a->name, l->tmpname);
   /* Restores most signals */
   enter_normal_mode ();
   free (msg);
@@ -304,18 +301,17 @@ shake_reg (struct accused *a, struct law *l)
       shake_reg_rewrite_phase (a, l);
       /* Updates position time */
       if (l->xattr && -1 == set_ptime (a->fd))
-	{
-	  error (0, errno,
-		 "%s: failed to set position time, check user_xattr",
-		 a->name);
-	}
+        {
+          error (0, errno,
+                 "%s: failed to set position time, check user_xattr",
+                 a->name);
+        }
     }
 
   release (a, l);
 
   return 0;
 }
-
 
 /*  For use by qsort().
  */
@@ -369,38 +365,38 @@ list_dir (char *name, int sort)
   for (n = 0; (ent = readdir (dir)); n++)
     {
       char *dname = ent->d_name;
-      char *fname;		// full name
+      char *fname;              // full name
       if (n == INT_MAX)
-	{
-	  error (0, 0, "%s: more than %u files", name, INT_MAX - 1);
-	  break;
-	}
+        {
+          error (0, 0, "%s: more than %u files", name, INT_MAX - 1);
+          break;
+        }
       /* ignore "." and ".." */
       if (0 == strcmp (dname, ".") || 0 == strcmp (dname, ".."))
-	{
-	  n--;
-	  continue;
-	}
+        {
+          n--;
+          continue;
+        }
       /* Does the buffer need to be extended ? */
-      if (!((n + 2) % BUFFSTEP))	// + 1 for buff[n], + 1 for buff[n+1]=NULL
-	{
-	  char **nbuff = realloc (buff, (n + 2 + BUFFSTEP) * sizeof (*buff));
-	  if (!nbuff)
-	    {
-	      error (0, errno, "%s: realloc() failed", name);
-	      break;
-	    }
-	  buff = nbuff;
-	}
+      if (!((n + 2) % BUFFSTEP))        // + 1 for buff[n], + 1 for buff[n+1]=NULL
+        {
+          char **nbuff = realloc (buff, (n + 2 + BUFFSTEP) * sizeof (*buff));
+          if (!nbuff)
+            {
+              error (0, errno, "%s: realloc() failed", name);
+              break;
+            }
+          buff = nbuff;
+        }
       /* get and store the complete path relative to cwd */
       fname = malloc (namel + strlen (dname) + 2);
       if (!fname)
-	{
-	  error (0, errno, "%s: malloc() failed", name);
-	  /* Try with the next file */
-	  n--;
-	  continue;
-	}
+        {
+          error (0, errno, "%s: malloc() failed", name);
+          /* Try with the next file */
+          n--;
+          continue;
+        }
       strcpy (fname, name);
       fname[namel] = '/';
       strcpy (fname + namel + 1, dname);
@@ -429,31 +425,31 @@ list_stdin (void)
   for (; -1 != getline (&line, &len, stdin); line = NULL, len = 0)
     {
       if (n == INT_MAX)
-	{
-	  error (0, 0, "-: more than %i files", INT_MAX - 1);
-	  return NULL;
-	}
+        {
+          error (0, 0, "-: more than %i files", INT_MAX - 1);
+          return NULL;
+        }
       /* remove the end of line */
       *strchrnul (line, '\n') = '\0';
       /* Does the buffer need to be extended ? */
-      if (!((n + 2) % BUFFSTEP))	// + 1 for buff[n], + 1 for buff[n+1]=NULL
-	{
-	  char **nbuff = realloc (buff, (n + 2 + BUFFSTEP) * sizeof (*buff));
-	  if (!nbuff)
-	    {
-	      error (0, errno, "s: realloc() failed");
-	      close_list (buff);
-	      free (line);
-	      return NULL;
-	    }
-	  buff = nbuff;
-	}
+      if (!((n + 2) % BUFFSTEP))        // + 1 for buff[n], + 1 for buff[n+1]=NULL
+        {
+          char **nbuff = realloc (buff, (n + 2 + BUFFSTEP) * sizeof (*buff));
+          if (!nbuff)
+            {
+              error (0, errno, "s: realloc() failed");
+              close_list (buff);
+              free (line);
+              return NULL;
+            }
+          buff = nbuff;
+        }
       /* Ignore "" */
       if ('\0' == *line)
-	{
-	  free (line);
-	  continue;
-	}
+        {
+          free (line);
+          continue;
+        }
       /* Add the line into the buffer */
       buff[n] = line;
       n++;
