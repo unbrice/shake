@@ -27,20 +27,20 @@
 #include <error.h>
 #include <string.h>
 #include <attr/attributes.h>	// flistxattr
-#include <sys/types.h>		// open()
-#include <sys/stat.h>		// open()
-#include <fcntl.h>		// open()
-#include <unistd.h>		// close()
-#include "linux.h"		// getopt()
+#include <sys/types.h>			// open()
+#include <sys/stat.h>			// open()
+#include <fcntl.h>				// open()
+#include <unistd.h>				// close()
+#include "linux.h"				// getopt()
 
 #include "config.h"
 #include "executive.h"
-void strip (char *name, char **attrs);
+void                strip (char *name, char **attrs);
 
 void
 show_help (void)
 {
-  puts ("\
+	puts ("\
 Usage: unattr [OPTION]... <FILE|DIRECTORY>...\n\
 Remove choosen xattr from files, recursively.\n\
 \n\
@@ -59,36 +59,36 @@ https://github.com/unbrice/shake/issues\
 void
 look (char *name, char **attr)
 {
-  assert (name && attr);
-  struct stat st;
-  /* stat */
-  if (-1 == lstat (name, &st))
-    error (0, errno, "%s: stat() failed", name);
-  else if (S_ISREG (st.st_mode))	// regular file
-    strip (name, attr);
-  else if (S_ISDIR (st.st_mode))	// directory
-    {
-      /* list it */
-      char **flist = list_dir (name, false);
-      if (!flist)
+	assert (name && attr);
+	struct stat         st;
+
+	/* stat */
+	if (-1 == lstat (name, &st))
+		error (0, errno, "%s: stat() failed", name);
+	else if (S_ISREG (st.st_mode))	// regular file
+		strip (name, attr);
+	else if (S_ISDIR (st.st_mode))	// directory
 	{
-	  error (0, 0, "%s: list_dir() failed", name);
-	  return;
+		/* list it */
+		char              **flist = list_dir (name, false);
+
+		if (!flist) {
+			error (0, 0, "%s: list_dir() failed", name);
+			return;
+		}
+		/* Go through the list */
+		for (char **name = flist; *name; name++) {
+			look (*name, attr);
+			free (*name);
+		}
+		free (flist);
 	}
-      /* Go through the list */
-      for (char **name = flist; *name; name++)
-	{
-	  look (*name, attr);
-	  free (*name);
-	}
-      free (flist);
-    }
 }
 
 void
 show_version (void)
 {
-  puts ("\
+	puts ("\
 Unattr " VERSION "\n\
 Copyright (C) 2006-2008 Brice Arnould.\n\
 Unattr comes with ABSOLUTELY NO WARRANTY. You may redistribute copies of Unattr\n\
@@ -103,70 +103,74 @@ these matters, see the file named GPL.txt.\
 void
 strip (char *name, char **attr)
 {
-  assert (name), assert (attr);
-  int fd = open (name, O_WRONLY);
-  if (0 > fd)
-    {
-      error (0, errno, "%s: open() failed", name);
-      return;
-    }
-  for (char **attr = attr; *attr; attr++)
-    attr_removef (fd, *attr, ATTR_DONTFOLLOW);
-  close (fd);
+	assert (name), assert (attr);
+	int                 fd = open (name, O_WRONLY);
+
+	if (0 > fd) {
+		error (0, errno, "%s: open() failed", name);
+		return;
+	}
+	for (char **attr = attr; *attr; attr++)
+		attr_removef (fd, *attr, ATTR_DONTFOLLOW);
+	close (fd);
 }
 
 int
 main (int argc, char **argv)
 {
-  char **attr = NULL;
-  /* Parse opts */
-  {
-    const uint BUFSTEP = 32;
-    uint pos = 0;
-    while (1)
-      {
-	int c;
-	static const struct option long_options[] = {
-	  {"attr", required_argument, NULL, 'a'},
-	  {"help", no_argument, NULL, 'h'},
-	  {"version", no_argument, NULL, 'V'},
-	  {0, 0, 0, 0}
-	};
-	c = getopt_long (argc, argv, "a:hV", long_options, NULL);
-	if (c == -1)
-	  break;
-	switch (c)
-	  {
-	  case 'a':
-	    if (0 == pos % BUFSTEP)
-	      attr = realloc (attr, sizeof (*attr) * (pos + BUFSTEP + 1));
-	    if (!attr)
-	      error (1, errno, "alloc() failed");
-	    attr[pos] = strdup (optarg);
-	    if (!attr[pos++])
-	      error (1, errno, "alloc() failed");
-	    break;
-	  case 'h':
-	    show_help ();
-	    return 0;
-	  case 'V':
-	    show_version ();
-	    return 0;
-	  case 0:
-	  case '?':
-	  default:
-	    error (1, 0, "invalid args, aborting");
-	  }
-      }
-    if (!attr)
-      return 0;
-    attr[pos] = NULL;
-  }
-  /* For each name */
-  if (attr)
-    for (; optind < argc; optind++)
-      look (argv[optind], attr);
-  /* free */
-  close_list (attr);
-  return 0;
+	char              **attr = NULL;
+
+	/* Parse opts */
+	{
+		const uint          BUFSTEP = 32;
+		uint                pos = 0;
+
+		while (1) {
+			int                 c;
+
+			static const struct option long_options[] = {
+				{"attr", required_argument, NULL, 'a'},
+				{"help", no_argument, NULL, 'h'},
+				{"version", no_argument, NULL, 'V'},
+				{0, 0, 0, 0}
+			};
+			c = getopt_long (argc, argv, "a:hV", long_options, NULL);
+			if (c == -1)
+				break;
+			switch (c) {
+				case 'a':
+					if (0 == pos % BUFSTEP)
+						attr =
+							realloc (attr,
+									 sizeof (*attr) * (pos + BUFSTEP +
+													   1));
+					if (!attr)
+						error (1, errno, "alloc() failed");
+					attr[pos] = strdup (optarg);
+					if (!attr[pos++])
+						error (1, errno, "alloc() failed");
+					break;
+				case 'h':
+					show_help ();
+					return 0;
+				case 'V':
+					show_version ();
+					return 0;
+				case 0:
+				case '?':
+				default:
+					error (1, 0, "invalid args, aborting");
+			}
+		}
+		if (!attr)
+			return 0;
+		attr[pos] = NULL;
+	}
+	/* For each name */
+	if (attr)
+		for (; optind < argc; optind++)
+			look (argv[optind], attr);
+	/* free */
+	close_list (attr);
+	return 0;
 }

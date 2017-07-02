@@ -17,7 +17,7 @@
 /*  along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /***************************************************************************/
 
-#include <stdio.h>		// puts(), printf(), putchar()
+#include <stdio.h>				// puts(), printf(), putchar()
 
 #include "config.h"
 #include "msg.h"
@@ -25,7 +25,7 @@
 void
 show_help (void)
 {
-  puts ("\
+	puts ("\
 Usage: shake [OPTION]... [FILE|DIRECTORY]...\n\
 Rewrite fragmented or misplaced files, maybe improving performance.\n\
 Reads file list from standard input if there is no files in the arguments.\n\
@@ -56,7 +56,7 @@ https://github.com/unbrice/shake/issues\
 void
 show_version (void)
 {
-  puts ("\
+	puts ("\
 Shake " VERSION "\n\
 Copyright (C) 2006-2011 Brice Arnould.\n\
 Shake comes with ABSOLUTELY NO WARRANTY. You may redistribute copies of Shake\n\
@@ -68,30 +68,34 @@ For more information about these matters, see the file named GPL.txt.\
 void
 show_header (struct law *l)
 {
-  if (l->verbosity)
-    printf ("IDEAL\tSTART\tEND\tFRAGC\tCRUMBC\tAGE\tSHOCKED\tNAME");
-  if (l->verbosity >= 3)
-    puts ("\tFRAGS");
-  else if (l->verbosity)
-    putchar ('\n');
+	if (l->verbosity)
+		printf
+			("IDEAL\tSTART\tEND\tFRAGC\tCRUMBC\tAGE\tSHOCKED\tNAME");
+	if (l->verbosity >= 3)
+		puts ("\tFRAGS");
+	else if (l->verbosity)
+		putchar ('\n');
 }
 
 void
 show_reg (struct accused *a, struct law *l)
 {
-  /* Show file status */
-  printf ("%lli\t%lli\t%lli\t%i\t%i\t%i\t%i\t%s",
-	  a->ideal, a->start / 1024, a->end / 1024, a->fragc, a->crumbc,
-	  (int) (a->age / 3600 / 24), a->guilty, a->name);
-  /* And, eventualy, list of frags and crumbs */
-  if (l->verbosity > 2 && a->poslog && a->poslog[0] != -1)
-    {
-      uint n;
-      putchar ('\t');
-      for (n = 0; a->sizelog[n + 1] != -1; n++)
-	printf ("%lli:%lli,", a->poslog[n] / 1024, a->sizelog[n] / 1024);
-      printf ("%lli:%lli\n", a->poslog[n] / 1024, a->sizelog[n] / 1024);
-    }
-  else
-    putchar ('\n');
+	/* Show file status */
+	printf ("%lli\t%lli\t%lli\t%i\t%i\t%i\t%i\t%s",
+			a->ideal, a->start / 1024, a->end / 1024, a->fragc,
+			a->crumbc, (int) (a->age / 3600 / 24), a->guilty,
+			a->name);
+	/* And, eventualy, list of frags and crumbs */
+	if (l->verbosity > 2 && a->poslog && a->poslog[0] != -1) {
+		uint                n;
+
+		putchar ('\t');
+		for (n = 0; a->sizelog[n + 1] != -1; n++)
+			printf ("%lli:%lli,", a->poslog[n] / 1024,
+					a->sizelog[n] / 1024);
+		printf ("%lli:%lli\n", a->poslog[n] / 1024,
+				a->sizelog[n] / 1024);
+	}
+	else
+		putchar ('\n');
 }

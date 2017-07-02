@@ -18,8 +18,8 @@
 /***************************************************************************/
 
 #ifndef FCOPY_H
-# define FCOPY_H
-# include "judge.h"
+#define FCOPY_H
+#include "judge.h"
 
 /*  Copy the content of file referenced by in_fd to out_fd
  *  Make file sparse if there's more than gap consecutive '\0',
@@ -31,7 +31,8 @@
  * so it would be dangerous to rewrite it... however it's
  * big and ugly -_-.
  */
-int fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked);
+int                 fcopy (int in_fd, int out_fd, size_t gap,
+						   bool stop_if_input_unlocked);
 
 /*  Make a backup of a file, truncate original to 0, then copy
  * the backup over it.
@@ -40,25 +41,24 @@ int fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked);
  * This can be called only when in NORMAL mode. It internally set the
  * CRITICAL mode but goes back in NORMAL mode before returning.
  */
-int shake_reg (struct accused *a, struct law *l);
+int                 shake_reg (struct accused *a, struct law *l);
 
-
 /* Return an array containing file names in the named directory,
  * excepted "." and "..".
  * Return NULL in case of error.
  * If sort is true, file names are sorted by atime.
  * LIMIT : INT_MAX files
  */
-char **list_dir (char *name, int sort);
+char              **list_dir (char *name, int sort);
 
 /* Return an array containing file names given in stdin
  * excepted "." and "..".
  * File names are sorted by atime.
  * LIMIT : INT_MAX files
  */
-char **list_stdin (void);
+char              **list_stdin (void);
 
 /* Free arrays allocated by list_dir()
  */
-void close_list (char **flist);
+void                close_list (char **flist);
 #endif

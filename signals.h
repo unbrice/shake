@@ -18,40 +18,38 @@
 /***************************************************************************/
 
 #ifndef SIGNALS_H
-# define SIGNALS_H
+#define SIGNALS_H
 
-
-enum mode
-{
-  /* In this mode, signals are handled with the default handler,  appart
-   * that the temporary file will be deleted.
-   * You can enter this mode from any other.
-   */
-  NORMAL = 42,
-  /* In this mode :
-   *  signals raised by internal errors, such as SIGSEV, stop the program
-   * and show informations about the error (char *msg)
-   *  signals that suspend the activity works as usual
-   *  others are suspended
-   * It is intended to be used when current_tempfile is the only copy
-   * of a file.
-   * You can enter in this mode from NORMAL.
-   */
-  CRITICAL,
+enum mode {
+	/* In this mode, signals are handled with the default handler,  appart
+	 * that the temporary file will be deleted.
+	 * You can enter this mode from any other.
+	 */
+	NORMAL = 42,
+	/* In this mode :
+	 *  signals raised by internal errors, such as SIGSEV, stop the program
+	 * and show informations about the error (char *msg)
+	 *  signals that suspend the activity works as usual
+	 *  others are suspended
+	 * It is intended to be used when current_tempfile is the only copy
+	 * of a file.
+	 * You can enter in this mode from NORMAL.
+	 */
+	CRITICAL,
 };
 
 /*  Set signals.c/handle_signals() as the default handler, tempfile
  * as the current temporary file, then call enter_normal_mode
  */
-void install_sighandler (const char *tempfile);
+void                install_sighandler (const char *tempfile);
 
 /* Enter CRITICAL mode (see above), msg is the message to display in
  * case of failure.
  */
-void enter_critical_mode (const char *msg);
+void                enter_critical_mode (const char *msg);
 
 /* Enter NORMAL mode (see above).
  */
-void enter_normal_mode (void);
+void                enter_normal_mode (void);
 
 #endif
