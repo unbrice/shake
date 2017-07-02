@@ -267,6 +267,10 @@ shake_reg_rewrite_phase (struct accused *a, struct law *l)
   if (0 > ftruncate (a->fd, (off_t) 0))
     error (1, errno,
            "%s: failed to ftruncate() ! file have been saved at %s",
+	         a->name, l->tmpname);
+  if (0 > fallocate(a->fd, FALLOC_FL_KEEP_SIZE, 0, a->size))
+    error (1, errno,
+           "%s: failed to allocate space! file has been saved at %s",
            a->name, l->tmpname);
   if (0 > fallocate(a->fd, FALLOC_FL_KEEP_SIZE, 0, a->size))
     error (1, errno,
