@@ -246,17 +246,24 @@ judge_list (char *restrict * flist, struct law *restrict l)
       /* Do we know where the file should be ? */
       {
         y->ideal = 0;
+        /* Ideal file order: x->start < y->start < z->start
+         *                              ^^^^^^^^
+         *                          File to be moved
+         */
         if (y->start)
           {
             if (x && x->end && labs (x->atime - y->atime) < MAGICTIME)
               {
                 if (z && z->start && labs (z->atime - y->atime) < MAGICTIME)
-                  y->ideal = (x->end + z->start) / 2;
+                  /* place the middle file between the left and right file */
+                  y->ideal = (x->end + z->start + MAGICLEAP - y->size) / 2;
                 else
+                  /* place the middle file directly after the left file */
                   y->ideal = (x->end + MAGICLEAP);
               }
             else if (z && z->start && labs (z->atime - y->atime) < MAGICTIME)
-              y->ideal = (z->start - z->size - MAGICLEAP);
+              /* place the middle file directly in front of the right file */
+              y->ideal = (z->start - y->size - MAGICLEAP);
           }
       }
       /* judge */
