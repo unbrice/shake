@@ -18,14 +18,15 @@
 /***************************************************************************/
 
 #ifndef MSG_H
-# define MSG_H
+#define MSG_H
 #include "judge.h"
 
-void show_help (void);
-void show_version (void);
-void show_header (struct law *l);
+void                show_help (void);
+void                show_version (void);
+void                show_header (struct law *l);
+
 /* Show statistics about an accused
  */
-void show_reg (struct accused *a, struct law *l);
+void                show_reg (struct accused *a, struct law *l);
 
 #endif /* MSG_H */
