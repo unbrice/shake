@@ -41,6 +41,13 @@ int
 fclone (int in_fd, int out_fd)
 {
   assert (in_fd > -1), assert (out_fd > -1);
+
+  /* truncate the output file first, required for FICLONE to be effective
+   * TODO: use openat(TMP_FILE) instead
+   */
+  if (-1 == ftruncate (out_fd, (off_t) 0))
+    return -1;
+
   int res = ioctl (out_fd, FICLONE, in_fd);
   if (0 == res)
     {
@@ -68,9 +75,12 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
   assert (in_fd > -1), assert (out_fd > -1);
   size_t buffsize = 65535;      // Must fit in a integer
   int *buffer;
-  /* Prepare files */
+  /* Prepare files
+   * TODO: maybe use openat(TMP_FILE) instead of ftruncate()
+   */
   if (-1 == lseek (in_fd, (off_t) 0, SEEK_SET)
-      || -1 == lseek (out_fd, (off_t) 0, SEEK_SET))
+      || -1 == lseek (out_fd, (off_t) 0, SEEK_SET)
+      || -1 == ftruncate (out_fd, (off_t) 0))
     return -1;
   /* Optimisation (on Linux it double the readahead window) */
   posix_fadvise (in_fd, (off_t) 0, (off_t) 0, POSIX_FADV_SEQUENTIAL);
@@ -254,22 +264,17 @@ release (struct accused *a, struct law *l)
 static int
 shake_reg_backup_phase (struct accused *a, struct law *l)
 {
-  /* truncate the backup file first, also required for FICLONE to be effective
-   * TODO: use openat(TMP_FILE) instead
+  int res = 0;
+  /* try to make a reflink copy first on filesystems that support it,
+   * this saves us from writing the file twice, thus double the
+   * performance
    */
-  int res = ftruncate (l->tmpfd, 0);
-  if (0 == res)
+  if (!(res = fclone (a->fd, l->tmpfd)))
     {
-      /* try to make a reflink copy first on filesystems that support it,
-       * this saves us from writing the file twice, thus double the
-       * performance
-       */
-      if (!(res = fclone (a->fd, l->tmpfd)))
-        {
-          posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
-          res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
-        }
+      posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
+      res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
     }
+
   if (0 > res || has_been_unlocked (a, l))
     return -1;
   else
