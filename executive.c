@@ -176,7 +176,7 @@ fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
         errno = 0;              // the error would be in the check and so meaningless
         return -1;
       }
-  }
+    }
   return 1;
 }
 
