@@ -229,7 +229,6 @@ release (struct accused *a, struct law *l)
 static int
 shake_reg_backup_phase (struct accused *a, struct law *l)
 {
-  static int can_reflink = 1;
   /* truncate the backup file first, also required for FICLONE to be effective
    */
   int res = ftruncate (l->tmpfd, 0);
@@ -239,7 +238,7 @@ shake_reg_backup_phase (struct accused *a, struct law *l)
        * this saves us from writing the file twice, thus double the
        * performance
        */
-      if (can_reflink && (0 == ioctl (l->tmpfd, FICLONE, a->fd)))
+      if (0 == ioctl (l->tmpfd, FICLONE, a->fd))
         {
           /* ensure nothing has gone wrong
            */
@@ -256,18 +255,6 @@ shake_reg_backup_phase (struct accused *a, struct law *l)
         }
       else
         {
-          if (can_reflink)
-            {
-              /* optimize: do not try any more cloning if it failed once,
-               * this assumes you're not crossing file system boundaries.
-               * TODO: fix this later by putting the tmp file on the same
-               * file system
-               */
-              can_reflink = 0;
-              error (0, errno,
-                     "%s: FICLONE failed, falling back to normal copy",
-                     a->name);
-            }
           posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
           res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
         }
