@@ -53,7 +53,6 @@ int readlock_to_writelock (int fd);
 /* Return true if fd is locked, else false
  */
 bool is_locked (int fd);
-
 
 
 /* Declares the glibc function
