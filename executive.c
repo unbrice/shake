@@ -230,6 +230,7 @@ static int
 shake_reg_backup_phase (struct accused *a, struct law *l)
 {
   /* truncate the backup file first, also required for FICLONE to be effective
+   * TODO: use openat(TMP_FILE) instead
    */
   int res = ftruncate (l->tmpfd, 0);
   if (0 == res)
