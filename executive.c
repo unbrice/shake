@@ -38,6 +38,31 @@
 #include <sys/time.h>           // futimes()
 
 int
+fclone (int in_fd, int out_fd)
+{
+  assert (in_fd > -1), assert (out_fd > -1);
+  int res = ioctl (out_fd, FICLONE, in_fd);
+  if (0 == res)
+    {
+      struct stat in_stats, out_stats;
+      if (fstat (in_fd, &in_stats))
+        return -1;
+      if (fstat (out_fd, &out_stats))
+        return -1;
+      if (out_stats.st_size != in_stats.st_size)
+        {
+          errno = 0;              // the error would be in the check and so meaningless
+          return -1;
+        }
+    }
+  /* give the filesystem a relief for better interactivity, it also
+   * ensures that cloned extents made it to disk
+   */
+  fdatasync (out_fd);
+  return res;
+}
+
+int
 fcopy (int in_fd, int out_fd, size_t gap, bool stop_if_input_unlocked)
 {
   assert (in_fd > -1), assert (out_fd > -1);
@@ -239,22 +264,7 @@ shake_reg_backup_phase (struct accused *a, struct law *l)
        * this saves us from writing the file twice, thus double the
        * performance
        */
-      if (0 == ioctl (l->tmpfd, FICLONE, a->fd))
-        {
-          /* ensure nothing has gone wrong
-           */
-          struct stat astat, lstat;
-          if (0 > fstat (a->fd, &astat))
-            error (1, errno, "%s: fstat() failed", a->name);
-          if (0 > fstat (l->tmpfd, &lstat))
-            error (1, errno, "%s: fstat() failed", l->tmpname);
-          assert (astat.st_size == lstat.st_size);
-
-          /* give the filesystem a relief
-           */
-          fdatasync (l->tmpfd);
-        }
-      else
+      if (!(res = fclone (a->fd, l->tmpfd)))
         {
           posix_fadvise (a->fd, (off_t) 0, (off_t) 0, POSIX_FADV_WILLNEED);
           res = fcopy (a->fd, l->tmpfd, MAGICLEAP, l->locks);
