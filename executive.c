@@ -37,6 +37,11 @@
 #include <dirent.h>             // opendir()
 #include <sys/time.h>           // futimes()
 
+# ifndef FICLONE
+#  define FICLONE _IOW(0x94, 9, int) // linux/fs.h since kernel 4.5
+# endif
+
+
 int
 fclone (int in_fd, int out_fd)
 {

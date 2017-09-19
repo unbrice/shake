@@ -29,10 +29,6 @@
 
 # define OS_RESERVED_SIGNAL 16
 
-# ifndef FICLONE
-#  define FICLONE _IOW(0x94, 9, int) // linux/fs.h since kernel 4.5
-# endif
-
 /* Called once, perform OS-specific tasks.
  */
 int os_specific_setup (const char *tempfile);
