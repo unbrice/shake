@@ -29,8 +29,8 @@
 #include <fcntl.h>              // fcntl()
 #include <signal.h>             // sigaction()
 #include <unistd.h>             // fcntl()
-#include <attr/attributes.h>    // attr_setf,
 #include <sys/ioctl.h>          // ioctl()
+#include <sys/xattr.h>          // fgetxattr(), setxattr()
 #include <linux/fs.h>           // FIBMAP, FIGETBSZ
 #include <arpa/inet.h>          // htonl, ntohl
 
@@ -172,8 +172,7 @@ set_ptime (int fd)
 {
   assert (fd > -1);
   uint32_t date = htonl ((uint32_t) time (NULL));
-  return attr_setf (fd, "shake.ptime", (char *) &date, DATE_SIZE,
-                    ATTR_DONTFOLLOW);
+  return fsetxattr (fd, "shake.ptime", (void *) &date, DATE_SIZE, 0);
 }
 
 time_t
@@ -183,7 +182,7 @@ get_ptime (int fd)
   uint32_t date;
   int size = DATE_SIZE;
   if (-1 ==
-      attr_getf (fd, "shake.ptime", (char *) &date, &size, ATTR_DONTFOLLOW))
+      fgetxattr (fd, "shake.ptime", (void *) &date, size))
     return (time_t) - 1;
   date = ntohl (date);
   if (date > time (NULL))
