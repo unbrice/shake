@@ -16,12 +16,12 @@
 #
 
 #### MACROS AND WORKAROUNDS ####
-CMAKE_MINIMUM_REQUIRED (VERSION 3.14)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.14) # Released on 2020-10-02
 set (CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 MACRO (add_help2man_manpage file command)
   add_custom_command (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
-    COMMAND ${HELP2MAN_LOCATION} ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} ./$<TARGET_FILE_NAME:${command}>
+    COMMAND ${HELP2MAN_LOCATION} ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} $<TARGET_FILE:${command}>
     DEPENDS ${command}
     COMMENT "Building manpage for ${command}")
 ENDMACRO ()
