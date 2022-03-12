@@ -1,4 +1,4 @@
-#  Copyright (C) 2006-2011 Brice Arnould.
+#  Copyright (C) 2006-2022 Brice Arnould.
 # 
 #  This file is part of ShaKe.
 #
@@ -16,16 +16,12 @@
 #
 
 #### MACROS AND WORKAROUNDS ####
-CMAKE_MINIMUM_REQUIRED (VERSION 2.4)
-if(COMMAND cmake_policy) # Needed by CMake 2.4
-  cmake_policy(SET CMP0005 OLD)
-endif(COMMAND cmake_policy)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.14)
 set (CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 MACRO (add_help2man_manpage file command)
-  get_target_property (HELP2MAN_COMMAND ${command} LOCATION)
   add_custom_command (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
-    COMMAND ${HELP2MAN_LOCATION} ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} ${HELP2MAN_COMMAND}
+    COMMAND ${HELP2MAN_LOCATION} ARGS -s8 -N -i ${CMAKE_CURRENT_SOURCE_DIR}/doc/fdl-man_insert -I ${CMAKE_CURRENT_SOURCE_DIR}/doc/${command}-man_insert -o ${CMAKE_CURRENT_BINARY_DIR}/${file} ./$<TARGET_FILE_NAME:${command}>
     DEPENDS ${command}
     COMMENT "Building manpage for ${command}")
 ENDMACRO ()
@@ -57,8 +53,8 @@ add_custom_target (doc ALL
 
 ## LINUX  ##
 IF (CMAKE_SYSTEM_NAME MATCHES Linux)
-  add_definitions ("-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64")  # For 64 bits files
-  add_definitions ("-D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200112L") # For posix_fallocate
+  add_definitions (-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64)  # For 64 bits files
+  add_definitions (-D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200112L) # For posix_fallocate
   list (APPEND CMAKE_REQUIRED_LIBRARIES attr)
   target_link_libraries (shake attr)
   target_link_libraries (unattr attr)
