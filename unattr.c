@@ -19,8 +19,6 @@
 
 /*** unattr: quick and dirty hack to remove unwanted Xattrs ****/
 
-// TODO : move xattr_* out of this file for portability
-
 #include <stdlib.h>
 #include <assert.h>
 #include <errno.h>
@@ -29,6 +27,7 @@
 #include <attr/attributes.h>	// flistxattr
 #include <sys/types.h>		// open()
 #include <sys/stat.h>		// open()
+#include <sys/xattr.h>  // fremovexattr()
 #include <fcntl.h>		// open()
 #include <unistd.h>		// close()
 #include "linux.h"		// getopt()
@@ -110,7 +109,7 @@ strip (char *name, char **attr)
       return;
     }
   for (char **attr = attr; *attr; attr++)
-    attr_removef (fd, *attr, ATTR_DONTFOLLOW);
+    fremovexattr (fd, *attr);
   close (fd);
 }
 
