@@ -1,7 +1,7 @@
 Source: shake-fs
 Section: admin
 Priority: optional
-Maintainer: Brice Arnould <brice@vleu.net>
+Maintainer: Brice Arnould <unbrice@vleu.net>
 Build-Depends: cdbs (>= 0.4.50), cmake (>= 2.4), debhelper (>= 5), help2man (>= 1.26), libattr1-dev (>= 2.0.0)
 Standards-Version: 3.8.0
 Homepage: http://vleu.net/shake/

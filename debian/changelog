@@ -2,7 +2,7 @@ shake-fs (1.1) focal; urgency=low
 
   * Upstream release.
 
- -- Brice Arnould <brice@vleu.net>  Sat, 12 Mar 2022 21:01:56 +0100
+ -- Brice Arnould <unbrice@vleu.net>  Sat, 12 Mar 2022 21:01:56 +0100
 
 shake-fs (1.0) trusty; urgency=high
 
