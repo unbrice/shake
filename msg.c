@@ -48,8 +48,7 @@ You have to mount your partition with the user_xattr option.\n\
   -v, --verbose		increase the verbosity level\n\
   -V, --version		show version number and copyright\n\
   -X, --no-xattr	disable usage of xattr\n\
-Report bugs to <brice.arnould+shake@gmail.com> or at\n\
-https://github.com/unbrice/shake/issues\
+Report bugs at https://github.com/unbrice/shake/issues\
 ");
 }
 

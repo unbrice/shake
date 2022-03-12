@@ -1,9 +1,9 @@
-This package was debianized by it's author (Brice Arnould
-<brice.arnould+shake@gmail.com>) on Sun, 30 Dec 2007 11:51:08 +0100.
+This package was debianized by its author (Brice Arnould
+<brice@vleu.net>) on Sun, 30 Dec 2007 11:51:08 +0100.
 
 Copyright: 
 
-    <Copyright (C) 2006-2011 Brice Arnould>
+    <Copyright (C) 2006-2022 Brice Arnould>
 
 License:
 
@@ -32,6 +32,6 @@ Public License can be found in `/usr/share/common-licenses/GPL', the
 complete text of the GNU Free Documentation License can be found in
 `/usr/share/common-licenses/GFDL-1.2'.
 
-The Debian packaging is (C) 2008-2011, Brice Arnould
-<brice.arnould+shake@gmail.com> and is licensed under the GPL, see above.
+The Debian packaging is (C) 2008-2022, Brice Arnould
+<brice@vleu.net> and is licensed under the GPL, see above.
 

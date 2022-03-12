@@ -34,7 +34,7 @@ ENDMACRO ()
 project (Shake C)
 set (CPACK_VERSION_MAJOR "1")
 set (CPACK_VERSION_MINOR "0")
-set (CPACK_PACKAGE_CONTACT "Brice Arnould <brice.arnould+shake@gmail.com>")
+set (CPACK_PACKAGE_CONTACT "Brice Arnould <brice@vleu.net>")
 
 set (VERSION "${CPACK_VERSION_MAJOR}.${CPACK_VERSION_MINOR}")
 
@@ -63,7 +63,7 @@ IF (CMAKE_SYSTEM_NAME MATCHES Linux)
   target_link_libraries (shake attr)
   target_link_libraries (unattr attr)
 ELSE ()
-  message ("For now, shake has only been tested under GNU/Linux. I would be really interested by your experience under other OS, if you have time to write me at <brice.arnould+shake@gmail.com>")
+  message ("For now, shake has only been tested under GNU/Linux.")
 ENDIF ()
 
 ## GCC  ##
